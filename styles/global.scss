@@ -1,0 +1,99 @@
+// Font - monospace
+@font-face {
+  font-family: "IBM Plex Mono Regular";
+  src: url("/fonts/IBM-Plex-Mono-Regular.ttf");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Font - light
+@font-face {
+  font-family: "Inter Light";
+  src: url("/fonts/Inter-Light.otf");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Font - regular
+@font-face {
+  font-family: "Inter Regular";
+  src: url("/fonts/Inter-Regular.otf");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Font - medium
+@font-face {
+  font-family: "Inter Medium";
+  src: url("/fonts/Inter-Medium.otf");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Font - semi bold
+@font-face {
+  font-family: "Inter Semi Bold";
+  src: url("/fonts/Inter-SemiBold.otf");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Font - bold
+@font-face {
+  font-family: "Inter Bold";
+  src: url("/fonts/Inter-Bold.otf");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+// Global setup
+body {
+  margin: 0px;
+  background-color: #191b1f;
+  font-family: "Inter Regular", sans-serif;
+}
+
+// nProgress bar overrides
+#nprogress .bar {
+  background: #ff6fcd !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #ff6fcd, 0 0 5px #ff6fcd !important;
+}
+
+#nprogress .spinner-icon {
+  border-top-color: #ff6fcd !important;
+  border-left-color: #ff6fcd !important;
+}
+
+// Use monospace font for numeric values
+#numeric {
+  font-family: "IBM Plex Mono Regular";
+}
+
+// Proposal count card style override
+#count {
+  background: radial-gradient(
+      145.05% 331.61% at 17.49% 21.17%,
+      rgba(255, 199, 0, 0.09) 0%,
+      rgba(255, 0, 0, 0) 89.12%
+    ),
+    radial-gradient(
+      214.41% 214.41% at 24.32% -46.4%,
+      rgba(203, 6, 231, 0.4) 0%,
+      rgba(240, 24, 164, 0.4) 100%
+    ),
+    radial-gradient(
+      141.89% 271.8% at 93.17% 0%,
+      rgba(219, 255, 0, 0.4) 0%,
+      rgba(0, 0, 0, 0) 100%
+    ) !important;
+    border: none;
+}

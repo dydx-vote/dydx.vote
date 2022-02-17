@@ -1,0 +1,596 @@
+// Page header
+.head {
+  background-color: transparent;
+
+  > div {
+    max-width: 1100px;
+    padding: 80px 20px 100px 20px;
+    width: calc(100% - 40px);
+    margin: 0px auto;
+
+    h1 {
+      color: white;
+      font-family: "Inter Light";
+      font-size: 2.5rem;
+      margin-block-start: 0px;
+    }
+
+    div {
+      display: inline-block;
+      color: rgb(170, 184, 193);
+      max-width: 600px;
+      padding: 25px;
+      background-color: rgba(20, 21, 24, 0.45);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      margin-bottom: 16px;
+      vertical-align: middle;
+      min-height: 50px;
+
+      p {
+        font-size: 16px;
+        line-height: 26px;
+        margin: 0px;
+      }
+
+      h2 {
+        margin: 0px 0px 5px 0px;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+
+      h3 {
+        font-size: 13px;
+        font-weight: 600;
+        color: #aab8c1;
+        margin: 0px;
+      }
+    }
+
+    div:nth-of-type(2) {
+      margin-left: 30px;
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+// Page body
+.body {
+  > div {
+    max-width: 1100px;
+    padding: 0px 20px;
+    width: calc(100% - 40px);
+    margin: 0px auto;
+    transform: translateY(-78px);
+  }
+}
+
+// Body governance cards
+.card {
+  background-color: rgba(20, 21, 24, 0.45);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+
+  > div:nth-of-type(1) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+    padding: 16px 28px;
+    font-size: 16px;
+
+    h4 {
+      margin: 0px;
+      font-family: "Inter Bold";
+      font-size: 22px;
+      line-height: 28px;
+      color: white;
+    }
+  }
+}
+
+.cardMore {
+  border-top: 1px solid rgba(255, 255, 255, 0.13);
+  padding: 1.145rem 1.9375rem;
+  text-align: center;
+
+  button {
+    background: transparent;
+    border: none;
+    text-transform: uppercase;
+    color: white;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    color: #ff6fcd;
+  }
+
+  button:focus {
+    outline: none;
+  }
+}
+
+.card:nth-of-type(2) {
+  margin-top: 20px;
+}
+
+.proposal {
+  padding: 1.25rem 1.75rem;
+  border-left: 2px solid transparent;
+
+  > div {
+    display: inline-block;
+    height: 100%;
+  }
+
+  > div:nth-child(2) {
+    float: right;
+
+    button {
+      transform: translateY(6px);
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      margin: 0px 8px;
+      border-radius: 5px;
+      border: 1px solid;
+      background-color: transparent;
+      transition: 0.2s ease-in, color 0.2s ease-in;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+
+      > div {
+        transform: translateY(2px);
+      }
+    }
+
+    button:focus {
+      outline: none;
+    }
+
+    button:hover {
+      color: white;
+    }
+  }
+
+  h4 {
+    margin: 0px;
+    font-size: 1rem;
+    line-height: 1.35;
+    color: white;
+    font-weight: 600;
+  }
+
+  span {
+    margin: 0px;
+    color: #aab8c1;
+    font-weight: 600;
+    font-size: 13px;
+    padding-top: 5px;
+    display: block;
+  }
+}
+
+.legend {
+  padding: 1rem 1.75rem;
+  position: relative;
+
+  span {
+    color: #aab8c1;
+    font-family: "Inter Bold";
+    font-size: 14px;
+  }
+
+  span:nth-child(2) {
+    position: absolute;
+    top: calc(50% - 6px);
+    right: 395px;
+  }
+
+  span:nth-child(3) {
+    position: absolute;
+    top: calc(50% - 6px);
+    right: 245px;
+  }
+}
+
+.delegate {
+  padding: 1rem 1.75rem;
+  border-left: 2px solid transparent;
+
+  > div {
+    color: white;
+    display: inline-block;
+    vertical-align: middle;
+    height: 100%;
+
+    img {
+      height: 27px;
+      width: 27px;
+      border-radius: 50%;
+    }
+
+    a {
+      color: white;
+      font-weight: 500;
+      text-decoration: none;
+    }
+
+    button {
+      vertical-align: middle;
+      display: inline-block;
+      padding: 0.6rem 1.2rem;
+      margin: 0px 8px;
+      border-radius: 5px;
+      border: 1px solid;
+      background-color: transparent;
+      transition: 0.2s ease-in, color 0.2s ease-in;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      min-width: 100px;
+
+      > div {
+        transform: translateY(2px);
+      }
+    }
+
+    button:focus {
+      outline: none;
+    }
+
+    button:hover {
+      color: white;
+    }
+  }
+
+  > div:nth-child(1) {
+    width: 30px;
+
+    span {
+      font-size: 14px;
+      font-weight: 700;
+    }
+  }
+
+  > div:nth-child(2) {
+    width: 50px;
+
+    img {
+      vertical-align: middle;
+    }
+  }
+
+  > div:nth-child(3) {
+    width: calc(100% - 500px);
+  }
+
+  > div:nth-child(4) {
+    width: 120px;
+  }
+
+  > div:nth-child(5) {
+    width: 80px;
+    padding-right: 20px;
+    text-align: right;
+  }
+
+  > div:nth-child(6) {
+    width: 200px;
+    text-align: right;
+  }
+}
+
+.proposal:hover,
+.delegate:hover {
+  border-left-color: #ff6fcd;
+}
+
+.info {
+  border-color: #657786;
+  color: #657786;
+
+  > div > div {
+    background-color: #657786;
+  }
+}
+
+.info:hover {
+  background-color: #657786 !important;
+  border: 1px solid #657786 !important;
+
+  > div > div {
+    background-color: #fff;
+  }
+}
+
+.for {
+  border-color: #ff6fcd;
+  color: #ff6fcd;
+
+  > div > div {
+    background-color: #ff6fcd;
+  }
+}
+
+.for:hover {
+  background-color: #ff6fcd !important;
+  border: 1px solid #ff6fcd !important;
+
+  > div > div {
+    background-color: #fff;
+  }
+}
+
+.against {
+  border-color: #e74c3c;
+  color: #e74c3c;
+
+  > div > div {
+    background-color: #e74c3c;
+  }
+}
+
+.against:hover {
+  background-color: #e74c3c !important;
+  border: 1px solid #e74c3c !important;
+
+  > div > div {
+    background-color: #fff;
+  }
+}
+
+.abstain {
+  border-color: #bdc3c7;
+  color: #bdc3c7;
+
+  > div > div {
+    background-color: #fff;
+  }
+}
+
+.abstain:hover {
+  background-color: #bdc3c7 !important;
+  border: 1px solid #bdc3c7 !important;
+  color: #2c3e50 !important;
+
+  > div > div {
+    background-color: #000;
+  }
+}
+
+// Custom delegation card
+.customDelegate {
+  padding: 16px 28px;
+
+  button {
+    vertical-align: middle;
+    display: inline-block;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    width: 100%;
+    border: 1px solid;
+    background-color: transparent;
+    transition: 0.2s ease-in, color 0.2s ease-in;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+  }
+
+  button:focus {
+    outline: none;
+  }
+
+  button:hover {
+    color: white;
+  }
+
+  button:disabled {
+    border-color: #ccc;
+    color: #ccc;
+  }
+
+  button:disabled:hover {
+    color: #ccc;
+    cursor: not-allowed;
+  }
+
+  button:nth-of-type(2) {
+    margin-block-start: 15px;
+  }
+
+  input {
+    background: rgba(20, 21, 24, 0.45);
+    border: 1px solid #657786;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 15px;
+    margin-block-end: 15px;
+    padding: 0.6rem 1.2rem;
+    width: calc(100% - 2.4rem - 2px);
+  }
+
+  input:focus {
+    border: 1px solid #e84393;
+    outline: none;
+  }
+
+  input::placeholder {
+    color: #657786;
+  }
+}
+
+// Swagger documentation CTA
+.swagger {
+  background-color: rgba(20, 21, 24, 0.45);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  padding: 0px !important;
+  margin: 1.33rem auto !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  div:nth-of-type(1) {
+    width: calc(50% - 3.5rem);
+    padding: 1.75rem;
+
+    h4 {
+      font-size: 1.2rem;
+      font-weight: 300;
+      margin: 0px;
+      line-height: 1.75rem;
+      color: white;
+    }
+
+    p {
+      color: rgb(101, 119, 134);
+      font-size: 15px;
+      line-height: 24px;
+    }
+
+    a {
+      color: #ff6fcd;
+      text-transform: uppercase;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.3px;
+      text-decoration: none;
+
+      span {
+        padding-bottom: 1px;
+        border-bottom: 1px solid transparent;
+        transition: 0.2s ease-in-out;
+      }
+
+      img {
+        margin-left: 8px;
+        transform: translateY(1px);
+        transition: 0.2s ease-in-out;
+      }
+    }
+
+    a:hover {
+      span {
+        border-bottom-color: #ff6fcd;
+      }
+
+      img {
+        margin-left: 13px;
+      }
+    }
+  }
+
+  div:nth-of-type(2) {
+    width: 50%;
+    background-color: rgb(20, 30, 39);
+    padding: 0.4rem 0rem;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    text-align: center;
+  }
+}
+
+@media screen and (max-width: 1100px) {
+  .proposal {
+    > div {
+      display: block;
+      float: none !important;
+
+      button:nth-of-type(1) {
+        margin-left: 0px;
+      }
+    }
+
+    > div:nth-of-type(2) {
+      padding-top: 10px;
+    }
+  }
+}
+
+@media screen and (max-width: 920px) {
+  .swagger {
+    flex-direction: column;
+
+    div:nth-of-type(1) {
+      width: calc(100% - 3.5rem);
+    }
+
+    div:nth-of-type(2) {
+      width: calc(100% - 3.5rem);
+      padding: 0rem 1.75rem;
+      text-align: center;
+      border-top-right-radius: 0px;
+      border-bottom-left-radius: 20px;
+    }
+  }
+
+  .head > div > div {
+    max-width: 100%;
+    width: calc(100% - 50px);
+    margin-left: 0px !important;
+  }
+
+  .legend {
+    span:nth-of-type(2),
+    span:nth-of-type(3) {
+      display: none;
+    }
+  }
+
+  .delegate {
+    > div {
+      font-size: 0.875rem;
+
+      img {
+        width: 20px;
+        height: 20px;
+      }
+    }
+
+    > div:nth-child(2) {
+      width: 35px;
+    }
+
+    > div:nth-child(3) {
+      width: 105px;
+    }
+
+    > div:nth-child(4),
+    > div:nth-child(5) {
+      display: none;
+    }
+
+    > div:nth-child(6) {
+      width: calc(100% - 170px);
+
+      button {
+        font-size: 12px;
+      }
+    }
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .proposal {
+    > div {
+      button {
+        margin: 5px 0px !important;
+        width: 100%;
+      }
+    }
+  }
+
+  .swagger {
+    div:nth-of-type(2) {
+      img {
+        max-width: 100%;
+      }
+    }
+  }
+}
