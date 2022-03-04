@@ -30,10 +30,7 @@ const Web3Handler = () => {
     SIG_RELAYER_ADDRESS
   );
   const dydxToken = new web3.eth.Contract(DYDX_ABI, DYDX_ADDRESS);
-  const governor = new web3.eth.Contract(
-    GOVERNOR_ABI,
-    GOVERNOR_ADDRESS
-  );
+  const governor = new web3.eth.Contract(GOVERNOR_ABI, GOVERNOR_ADDRESS);
 
   // Return web3 + contracts
   return {
@@ -46,10 +43,10 @@ const Web3Handler = () => {
 
 /**
  * Generate voting message
- * @param {Number} proposalId for Compound Governance proposal
+ * @param {Number} id for dYdX Governance proposal
  * @param {boolean} support for or against
  */
-const createVoteBySigMessage = (proposalId, support) => {
+const createVoteBySigMessage = (id, support) => {
   // Types
   const types = {
     EIP712Domain: [
@@ -57,26 +54,24 @@ const createVoteBySigMessage = (proposalId, support) => {
       { name: "chainId", type: "uint256" },
       { name: "verifyingContract", type: "address" },
     ],
-    Ballot: [
-      { name: "proposalId", type: "uint256" },
-      { name: "support", type: "uint8" },
+    VoteEmitted: [
+      { name: "id", type: "uint256" },
+      { name: "support", type: "bool" },
     ],
   };
 
   // Return message to sign
   return {
     types,
-    primaryType: "Ballot",
-    // Compound Governor contract
+    primaryType: "VoteEmitted",
     domain: {
-      name: "Uniswap Governor Bravo",
+      name: "dYdX Governance",
       chainId: 1,
-      verifyingContract: "0x408ED6354d4973f66138C91495F2f2FCbd8724C3",
+      verifyingContract: "0x7E9B1672616FF6D6629Ef2879419aaE79A9018D2",
     },
-    // Message
     message: {
-      proposalId,
-      support: support,
+      id,
+      support,
     },
   };
 };
@@ -86,15 +81,16 @@ const createVoteBySigMessage = (proposalId, support) => {
  * @param {string} delegatee address to delegate voting power to
  * @param {integer} nonce transaction nonce
  */
-const createDelegateBySigMessage = (delegatee, nonce) => {
+const createDelegateBySigMessage = (delegatee, nonce, expiry) => {
   // Types
   const types = {
     EIP712Domain: [
       { name: "name", type: "string" },
+      { name: "version", type: "string" },
       { name: "chainId", type: "uint256" },
       { name: "verifyingContract", type: "address" },
     ],
-    Delegation: [
+    Delegate: [
       { name: "delegatee", type: "address" },
       { name: "nonce", type: "uint256" },
       { name: "expiry", type: "uint256" },
@@ -104,19 +100,19 @@ const createDelegateBySigMessage = (delegatee, nonce) => {
   // Return message to sign
   return {
     types,
-    primaryType: "Delegation",
-    // Uniswap UNI token contract
+    primaryType: "Delegate",
     domain: {
-      name: "Uniswap",
+      name: "dYdX",
+      version: 1,
       chainId: 1,
-      verifyingContract: "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+      verifyingContract: "0x92D6C1e31e14520e676a687F0a93788B716BEff5",
     },
     // Message
     message: {
       // Delegatee address
       delegatee,
-      nonce: nonce,
-      expiry: 10e9,
+      nonce,
+      expiry,
     },
   };
 };
@@ -128,7 +124,7 @@ const createDelegateBySigMessage = (delegatee, nonce) => {
  */
 const canDelegate = async (address, delegatee = "0x") => {
   // Collect COMP token contract
-  const { web3, compToken } = Web3Handler();
+  const { web3, dydxToken } = Web3Handler();
 
   // Delegatee and address formatting
   delegatee = delegatee.toString().toLowerCase();
@@ -157,19 +153,22 @@ const canDelegate = async (address, delegatee = "0x") => {
     throw newError;
   }
 
-  // Gets the address onchain COMP balance, current address
+  // Gets the address onchain dYdX balance, current address
   // delegated to and checks if database for delegationAllowed
-  let compBalance, currentDelegatee;
+  let dydxBalance, currentDelegateeVoting, currentDelegateeProposition;
 
   try {
-    [compBalance, currentDelegatee] = await Promise.all([
-      // Collect address COMP balance
-      compToken.methods.balanceOf(address).call(),
-      // Collect address delegated status
-      compToken.methods.delegates(address).call(),
-      // Collect database for delegationAllowed
-      delegationAllowed(address),
-    ]);
+    [dydxBalance, currentDelegateeVoting, currentDelegateeProposition] =
+      await Promise.all([
+        // Collect address COMP balance
+        dydxToken.methods.balanceOf(address).call(),
+        // Collect address delegated to for voting power
+        dydxToken.methods.getDelegateeByType(address, 0).call(),
+        // Collect address delegated to for proposition power
+        dydxToken.methods.getDelegateeByType(address, 1).call(),
+        // Collect database for delegationAllowed
+        delegationAllowed(address),
+      ]);
   } catch (error) {
     // If error from database
     if (typeof error.code == "number") {
@@ -183,17 +182,21 @@ const canDelegate = async (address, delegatee = "0x") => {
     throw newError;
   }
 
-  // Enforces a min COMP balance
-  if (parseInt(compBalance) < parseInt(process.env.MIN_COMP)) {
-    const error = new Error("UNI balance too low");
+  // Enforces a min dYdX balance
+  if (parseInt(dydxBalance) < parseInt(process.env.MIN_COMP)) {
+    const error = new Error("dYdX balance too low");
     error.code = 403;
     throw error;
   }
 
-  // If delegatee is specified, must not match existing delegatee
+  // If delegatee is specified, must not match both existing delegatees
   if (
     delegatee != "0x" &&
-    delegatee.localeCompare(currentDelegatee.toString().toLowerCase()) == 0
+    delegatee.localeCompare(currentDelegateeVoting.toString().toLowerCase()) ==
+      0 &&
+    delegatee.localeCompare(
+      currentDelegateeProposition.toString().toLowerCase()
+    ) == 0
   ) {
     const error = new Error("delegatee can not be current delegatee");
     error.code = 403;
@@ -203,12 +206,12 @@ const canDelegate = async (address, delegatee = "0x") => {
 
 /**
  * Checks if an address can vote by sig for the given proposal
- * @param {String} address
- * @param {Number} proposalId
+ * @param {String} address Voting address
+ * @param {Number} proposalId Proposal to vote on
  */
 const canVote = async (address, proposalId) => {
   // Collect Web3 + contracts
-  const { web3, compToken, governorBravo } = Web3Handler();
+  const { web3, dydxToken, governor } = Web3Handler();
 
   // Check for undefined inputs
   if (typeof address == "undefined" || typeof proposalId == "undefined") {
@@ -238,9 +241,9 @@ const canVote = async (address, proposalId) => {
   try {
     [proposal, receipt, currentBlock] = await Promise.all([
       // Collect proposal data
-      governorBravo.methods.proposals(proposalId).call(),
+      governor.methods.getProposalById(proposalId).call(),
       // Collect proposal receipt
-      governorBravo.methods.getReceipt(proposalId, address).call(),
+      governorBravo.methods.getVoteOnProposal(proposalId, address).call(),
       // Collect current block number
       web3.eth.getBlockNumber(),
       // Check if vote is allowed from db
@@ -248,8 +251,8 @@ const canVote = async (address, proposalId) => {
     ]);
 
     // Check prior delegated votes
-    votesDelegated = await compToken.methods
-      .getPriorVotes(address, proposal.startBlock)
+    votesDelegated = await dydxToken.methods
+      .getPowerAtBlock(address, proposal.startBlock, 0)
       .call();
   } catch (erorr) {
     // Error thrown from DB vote allowed. Throw to res
@@ -263,7 +266,7 @@ const canVote = async (address, proposalId) => {
     throw newError;
   }
 
-  // Not ongoing proposal. Leaves a 5 block buffer for last minute relay
+  // Not ongoing proposal. Leaves a 2400 block buffer for relaying
   if (
     !(
       currentBlock > proposal.startBlock &&
@@ -277,14 +280,17 @@ const canVote = async (address, proposalId) => {
   }
 
   // Require at least min comp COMP delegated
-  if (parseInt(votesDelegated) < parseInt(process.env.MIN_COMP) && !isWhitelisted(address)) {
-    const error = new Error("UNI delegated to address is too low");
+  if (
+    parseInt(votesDelegated) < parseInt(process.env.MIN_COMP) &&
+    !isWhitelisted(address)
+  ) {
+    const error = new Error("dYdX voting power is too low");
     error.code = 403;
     throw error;
   }
 
   // Check address has not voted yet
-  if (receipt.hasVoted) {
+  if (receipt.votingPower > 0) {
     const error = new Error("address already voted");
     error.code = 400;
     throw error;
@@ -292,7 +298,10 @@ const canVote = async (address, proposalId) => {
 };
 
 function isWhitelisted(address) {
-  const whitelist = ["0x5b3bffc0bcf8d4caec873fdcf719f60725767c98","0x2b384212edc04ae8bb41738d05ba20e33277bf33"];
+  const whitelist = [
+    "0x5b3bffc0bcf8d4caec873fdcf719f60725767c98",
+    "0x2b384212edc04ae8bb41738d05ba20e33277bf33",
+  ];
   return whitelist.includes(address);
 }
 
@@ -306,18 +315,9 @@ function isWhitelisted(address) {
  * @param {String} s
  */
 const vote = async (address, proposalId, support, v, r, s) => {
-  // Setup contracts
-  const { sigRelayer } = Web3Handler();
-
   // Check for undefined inputs
   if ([address, proposalId, support, v, r, s].includes(undefined)) {
     const error = new Error("invalid input");
-    error.code = 422;
-    throw error;
-  }
-
-  if (support > 2) {
-    const error = new Error("invalid support value");
     error.code = 422;
     throw error;
   }
@@ -329,7 +329,7 @@ const vote = async (address, proposalId, support, v, r, s) => {
   let sigAddress;
   try {
     sigAddress = await recoverTypedSignature({
-      data: data,
+      data,
       signature: r + s.substring(2) + v.substring(2),
       version: "V4",
     });
@@ -381,7 +381,7 @@ const vote = async (address, proposalId, support, v, r, s) => {
 
   // Send notification to admin using telegram
   if (typeof process.env.NOTIFICATION_HOOK != "undefined") {
-    await axios.get(process.env.NOTIFICATION_HOOK + "New uni.vote voting sig");
+    await axios.get(process.env.NOTIFICATION_HOOK + "New dydx.vote voting sig");
   }
 };
 
@@ -396,9 +396,6 @@ const vote = async (address, proposalId, support, v, r, s) => {
  * @param {String} s
  */
 const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
-  // Setup contracts
-  const { sigRelayer } = Web3Handler();
-
   // Validate input data
   if ([address, delegatee, nonce, expiry, v, r, s].includes(undefined)) {
     const error = new Error("invalid input");
@@ -412,7 +409,7 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
 
   // Address verified used to create signature
   let sigAddress;
-  const data = createDelegateBySigMessage(delegatee, nonce);
+  const data = createDelegateBySigMessage(delegatee, nonce, expiry);
 
   try {
     sigAddress = await recoverTypedSignature({
@@ -473,7 +470,7 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
   // Send notification to admin using telegram
   if (typeof process.env.NOTIFICATION_HOOK != "undefined") {
     await axios.get(
-      process.env.NOTIFICATION_HOOK + "New uni.vote delegation sig"
+      process.env.NOTIFICATION_HOOK + "New dydx.vote delegation sig"
     );
   }
 };

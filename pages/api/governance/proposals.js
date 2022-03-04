@@ -1,5 +1,7 @@
 import Web3 from "web3"; // Web3
 import axios from "axios"; // Axios requests
+import bs58 from "bs58"; // bs58 cryptography for decode ipfs hash
+
 import {
   DYDX_ABI,
   DYDX_ADDRESS,
@@ -31,17 +33,14 @@ const Web3Handler = () => {
   // Setup contracts
   const multicall = new web3.eth.Contract(MULTICALL_ABI, MULTICALL_ADDRESS);
   const dydxToken = new web3.eth.Contract(DYDX_ABI, DYDX_ADDRESS);
-  const governor = new web3.eth.Contract(
-    GOVERNOR_ABI,
-    GOVERNOR_ADDRESS
-  );
+  const governor = new web3.eth.Contract(GOVERNOR_ABI, GOVERNOR_ADDRESS);
 
   // Return web3 + contracts
   return {
     web3,
     dydxToken,
     governor,
-    multicall
+    multicall,
   };
 };
 
@@ -49,12 +48,7 @@ export default async (req, res) => {
   let { page_number = 1, page_size = 10, get_state_times = false } = req.query;
   page_size = Number(page_size);
   page_number = Number(page_number);
-  const {
-    web3,
-    dydxToken,
-    governor,
-    multicall
-  } = Web3Handler();
+  const { web3, dydxToken, governor, multicall } = Web3Handler();
   const proposalCount = Number(
     await governor.methods.getProposalsCount().call()
   );
@@ -108,10 +102,7 @@ export default async (req, res) => {
           GOVERNOR_ADDRESS,
           "0x9080936f", //TODO: Find getProposalsState hex
           proposalCount - 1 - offset,
-          Math.max(
-            -1,
-            proposalCount - offset - page_size
-          ),
+          Math.max(-1, proposalCount - offset - page_size),
           web3
         )
       )
@@ -125,9 +116,12 @@ export default async (req, res) => {
   let proposalData = [];
   for (const proposal of graphRes.data.data.proposals) {
     let newProposal = {};
-    newProposal.title = "Temp"
+    newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
+    const ipfsData = await pullIpfsHash(newProposal.ipfs_hash); // Should parallelize these fetches
+    newProposal.title = ipfsData.title;
     newProposal.id = proposal.id;
-    newProposal.dydx_url = "https://dydx.community/dashboard/proposal/" + proposal.id;
+    newProposal.dydx_url =
+      "https://dydx.community/dashboard/proposal/" + proposal.id;
 
     const currentState = stringStates.shift();
     let time = null;
@@ -204,4 +198,21 @@ async function getTimeFromState(state, proposal, web3) {
   }
 
   return time;
+}
+
+async function pullIpfsHash(ipfsHash) {
+  const res = await axios.get("https://gateway.pinata.cloud/ipfs/" + ipfsHash);
+  return res.data;
+}
+
+function encodeIpfsHash(encodedIpfsHash) {
+  const fromHexString = (hexString) =>
+    new Uint8Array(
+      hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
+  let array = fromHexString(encodedIpfsHash);
+  array[0] = 32;
+  array = Array.from(array);
+  array.unshift(18);
+  return bs58.encode(array);
 }

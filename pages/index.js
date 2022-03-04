@@ -11,11 +11,14 @@ export default function Home({ defaultProposals, defaultPages }) {
   const [loading, setLoading] = useState(false); // Proposal loading state
   const [pages, setPages] = useState(defaultPages); // Proposal pagination
   const [proposals, setProposals] = useState(defaultProposals); // Proposals array
-  const [buttonLoading, setButtonLoading] = useState({ id: null, type: null }); // Current button loading state
+  const [buttonLoading, setButtonLoading] = useState({
+    id: null,
+    support: null,
+  }); // Current button loading state
 
   // Web3 + Authenticate function from context
   const { web3, authenticate } = web3p.useContainer();
-  const { voteFor, voteAgainst, voteAbstain } = vote.useContainer();
+  const { voteFor, voteAgainst } = vote.useContainer();
 
   /**
    * Util: Uppercase first letter of word
@@ -55,47 +58,41 @@ export default function Home({ defaultProposals, defaultPages }) {
   };
 
   /**
-   * Opens Uniswap Governance proposal information in new tab
-   * @param {Number} uniswap_url for Uniswap governance proposal
+   * Opens Dydx Governance proposal information in new tab
+   * @param {string} dydx_url link for Dydx governance proposal
    */
-  const proposalInfo = (uniswap_url) => {
+  const proposalInfo = (dydx_url) => {
     // Navigate
     window.open(
-      // With target set to Uniswap governance proposal
-      uniswap_url,
+      // With target set to dydx governance proposal
+      dydx_url,
       // In new tab
       "_blank"
     );
   };
 
   /**
-   * voteFor, voteAgainst, or abstain with loading states
+   * voteFor or voteAgainst with loading states
    * @param {number} proposalId to cast a vote on
-   * @param {number} type 0 === voteFor, 1 === voteAgainst, 2 === abstain
+   * @param {boolean} support
    */
-  const voteWithLoading = async (proposalId, type) => {
+  const voteWithLoading = async (proposalId, support) => {
     // Toggle button loading to true
-    setButtonLoading({ id: proposalId, type: type });
-
+    setButtonLoading({ id: proposalId, support });
     try {
-      // Call voteFor or voteAgainst based on type
-      switch (Number(type)) {
-        case 0:
-          await voteFor(proposalId);
-          break;
-        case 1:
-          await voteAgainst(proposalId);
-          break;
-        default:
-          await voteAbstain(proposalId);
+      // Call voteFor or voteAgainst based on support
+      if (support === true) {
+        await voteFor(proposalId);
+      } else {
+        await voteAgainst(proposalId);
       }
     } catch {
       // If MetaMask cancellation, toggle button loading to false
-      setButtonLoading({ id: null, type: null });
+      setButtonLoading({ id: null, support: null });
     }
 
     // Else, toggle loading to false on success
-    setButtonLoading({ id: null, type: null });
+    setButtonLoading({ id: null, support: null });
   };
 
   return (
@@ -107,7 +104,7 @@ export default function Home({ defaultProposals, defaultPages }) {
           <h1>Vote By Signature</h1>
           <div>
             <p>
-              Voting by signature lets you place votes across Uniswap Governance
+              Voting by signature lets you place votes across dYdX Governance
               proposals, without having to send your transactions on-chain,
               saving fees.
             </p>
@@ -157,47 +154,38 @@ export default function Home({ defaultProposals, defaultPages }) {
                     {/* Proposal actions */}
                     <div>
                       <button
-                        onClick={() => proposalInfo(proposal.uniswap_url)}
+                        onClick={() => proposalInfo(proposal.dydx_url)}
                         className={styles.info}
                       >
                         Info
                       </button>
-                      {proposal.state.value === "Active" ? (
+                      {proposal.state.value === "Executed" ? (
                         // Check if proposal is active
                         web3 ? (
                           // If authenticated and proposal active, return voting + info buttons
                           <>
                             <button
-                              onClick={() => voteWithLoading(proposal.id, 0)}
+                              onClick={() => voteWithLoading(proposal.id, true)}
                               className={styles.for}
                             >
                               {buttonLoading.id === proposal.id &&
-                              buttonLoading.type === 0 ? (
+                              buttonLoading.support === true ? (
                                 <BeatLoader size={9} />
                               ) : (
                                 "Vote For"
                               )}
                             </button>
                             <button
-                              onClick={() => voteWithLoading(proposal.id, 1)}
+                              onClick={() =>
+                                voteWithLoading(proposal.id, false)
+                              }
                               className={styles.against}
                             >
                               {buttonLoading.id === proposal.id &&
-                              buttonLoading.type === 1 ? (
+                              buttonLoading.support === false ? (
                                 <BeatLoader size={9} />
                               ) : (
                                 "Vote Against"
-                              )}
-                            </button>
-                            <button
-                              onClick={() => voteWithLoading(proposal.id, 2)}
-                              className={styles.abstain}
-                            >
-                              {buttonLoading.id === proposal.id &&
-                              buttonLoading.type === 2 ? (
-                                <BeatLoader size={9} />
-                              ) : (
-                                "Abstain"
                               )}
                             </button>
                           </>
@@ -243,7 +231,7 @@ export default function Home({ defaultProposals, defaultPages }) {
 export async function getServerSideProps() {
   // Collect first page data
   const firstPage =
-    "https://uni.vote/api/governance/proposals?page_size=10&get_state_times=true&page_number=1";
+    "https://dydx-vote.vercel.app/api/governance/proposals?page_size=10&get_state_times=true&page_number=1";
   const response = await axios.get(firstPage);
 
   // Return:

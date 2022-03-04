@@ -8,8 +8,8 @@ export default function Layout({ children }) {
       {/* Meta Setup */}
       <Head>
         {/* Meta */}
-        <title>Uni.Vote</title>
-        <meta name="title" content="Uni.Vote" />
+        <title>dYdX.Vote</title>
+        <meta name="title" content="dYdX.Vote" />
         <meta
           name="description"
           content="Gas-less voting and delegation for Uniswap governance. Sign and relay your transactions for free."
@@ -17,25 +17,25 @@ export default function Layout({ children }) {
 
         {/* Open Graph + Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://uni.vote" />
-        <meta property="og:title" content="Uni.Vote" />
+        <meta property="og:url" content="https://dYdX.Vote" />
+        <meta property="og:title" content="dYdX.Vote" />
         <meta
           property="og:description"
           content="Gas-less voting and delegation for Uniswap governance. Sign and relay your transactions for free."
         />
-        <meta property="og:image" content="https://uni.vote/brand/meta.png" />
+        <meta property="og:image" content="https://dYdX.Vote/brand/meta.png" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://uni.vote" />
-        <meta property="twitter:title" content="Uni.Vote" />
+        <meta property="twitter:url" content="https://dYdX.Vote" />
+        <meta property="twitter:title" content="dYdX.Vote" />
         <meta
           property="twitter:description"
           content="Gas-less voting and delegation for Uniswap governance. Sign and relay your transactions for free."
         />
         <meta
           property="twitter:image"
-          content="https://uni.vote/brand/meta.png"
+          content="https://dYdX.Vote/brand/meta.png"
         />
 
         {/* Favicon */}
@@ -90,27 +90,8 @@ export default function Layout({ children }) {
               rel="noopener noreferrer"
             >
               arr00
-            </a>{" "}
-            and{" "}
-            <a
-              href="https://twitter.com/_anishagnihotri"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              anish
             </a>
-            .
-          </span>
-          <span>
-            With contributions from{" "}
-            <a
-              href="https://twitter.com/sehyunchung"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              sehyun
-            </a>{" "}
-            and{" "}
+            ,{" "}
             <a
               href="https://twitter.com/jo3_mo"
               target="_blank"
@@ -118,11 +99,19 @@ export default function Layout({ children }) {
             >
               joe
             </a>
+            , and{" "}
+            <a
+              href="https://twitter.com/sehyunchung"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              sehyun
+            </a>
             .
           </span>
           <span>Community-led and built with love.</span>
           <span>
-            Need support? <a href="mailto:help@uni.vote">help@uni.vote</a>
+            Need support? <a href="mailto:help@dYdX.Vote">help@dYdX.Vote</a>
           </span>
         </div>
       </div>

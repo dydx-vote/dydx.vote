@@ -1,10 +1,9 @@
 import axios from "axios"; // Axios requests
 import { web3p } from "containers"; // Web3
-import { COMP_ABI } from "helpers/abi"; // Compound (COMP) Governance Token ABI
+import { DYDX_ABI } from "helpers/abi"; // dYdX Token ABI
 import { useState, useEffect } from "react"; // State management
 import { createContainer } from "unstated-next"; // Unstated-next containerization
 
-// Reference implementation: https://github.com/TennisBowling/comp.vote/blob/master/bySig/delegate_by_signature.html
 function useDelegate() {
   // Context
   const { web3, address } = web3p.useContainer();
@@ -22,10 +21,11 @@ function useDelegate() {
     const types = {
       EIP712Domain: [
         { name: "name", type: "string" },
+        { name: "version", type: "string" },
         { name: "chainId", type: "uint256" },
         { name: "verifyingContract", type: "address" },
       ],
-      Delegation: [
+      Delegate: [
         { name: "delegatee", type: "address" },
         { name: "nonce", type: "uint256" },
         { name: "expiry", type: "uint256" },
@@ -35,12 +35,12 @@ function useDelegate() {
     // Return message to sign
     return JSON.stringify({
       types,
-      primaryType: "Delegation",
-      // Uniswap UNI token contract
+      primaryType: "Delegate",
       domain: {
-        name: "Uniswap",
+        name: "dYdX",
+        version: 1,
         chainId: 1,
-        verifyingContract: "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984",
+        verifyingContract: "0x92D6C1e31e14520e676a687F0a93788B716BEff5",
       },
       // Message
       message: {
@@ -120,14 +120,13 @@ function useDelegate() {
    * @param {string} delegate address to delegate voting power to
    */
   const createDelegation = async (delegatee) => {
-    // Compound (COMP) Governance token contract
-    const compoundContract = new web3.eth.Contract(
-      COMP_ABI,
-      "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"
+    const dydx = new web3.eth.Contract(
+      DYDX_ABI,
+      "0x92D6C1e31e14520e676a687F0a93788B716BEff5"
     );
 
     // Collect interaction nonce
-    const nonce = await compoundContract.methods.nonces(address).call();
+    const nonce = await dydx.methods.nonces(address).call();
 
     // Generate delegation message to sign
     const msgParams = createDelegateBySigMessage(delegatee, nonce);
@@ -141,14 +140,13 @@ function useDelegate() {
    * Checks if a user has an existing delegation
    */
   const checkDelegation = async () => {
-    // Compound (COMP) Governance token contract
-    const compoundContract = new web3.eth.Contract(
-      COMP_ABI,
-      "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984"
+    const dydx = new web3.eth.Contract(
+      DYDX_ABI,
+      "0x92D6C1e31e14520e676a687F0a93788B716BEff5"
     );
 
     // Collect current delegate
-    const delegate = await compoundContract.methods.delegates(address).call();
+    const delegate = await dydx.methods.getDelegateeByType(address, 0).call();
 
     // Update delegate in state
     const noDelegate = "0x0000000000000000000000000000000000000000";

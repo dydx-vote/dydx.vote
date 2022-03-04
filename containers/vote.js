@@ -2,14 +2,13 @@ import axios from "axios"; // Axios requests
 import { web3p } from "containers"; // Web3
 import { createContainer } from "unstated-next"; // Unstated-next containerization
 
-// Reference implementation: https://github.com/TennisBowling/comp.vote/blob/master/bySig/vote_by_signature.html
 function useVote() {
   // Context
   const { web3, address } = web3p.useContainer();
 
   /**
    * Generate voting message
-   * @param {Number} proposalId for Compound Governance proposal
+   * @param {Number} proposalId for dYdX Governance proposal
    * @param {boolean} support for or against
    */
   const createVoteBySigMessage = (proposalId, support) => {
@@ -20,26 +19,24 @@ function useVote() {
         { name: "chainId", type: "uint256" },
         { name: "verifyingContract", type: "address" },
       ],
-      Ballot: [
-        { name: "proposalId", type: "uint256" },
-        { name: "support", type: "uint8" },
+      VoteEmitted: [
+        { name: "id", type: "uint256" },
+        { name: "support", type: "bool" },
       ],
     };
 
     // Return message to sign
     return JSON.stringify({
       types,
-      primaryType: "Ballot",
-      // Compound Governor contract
+      primaryType: "VoteEmitted",
       domain: {
-        name: "Uniswap Governor Bravo",
+        name: "dYdX Governance",
         chainId: 1,
-        verifyingContract: "0x408ED6354d4973f66138C91495F2f2FCbd8724C3",
+        verifyingContract: "0x7E9B1672616FF6D6629Ef2879419aaE79A9018D2",
       },
-      // Message
       message: {
-        proposalId,
-        support: support,
+        id: proposalId,
+        support,
       },
     });
   };
@@ -73,46 +70,33 @@ function useVote() {
 
   /**
    * Generate a FOR vote for the proposalId
-   * @param {Number} proposalId of Compound governance proposal
+   * @param {Number} proposalId of dYdX Governance proposal
    */
   const voteFor = async (proposalId) => {
     // Generate and sign message
-    const msgParams = createVoteBySigMessage(proposalId, 1);
+    const msgParams = createVoteBySigMessage(proposalId, true);
     const signedMsg = await signVote(msgParams);
 
     // POST vote to server
-    await castVote(proposalId, 1, signedMsg);
+    await castVote(proposalId, true, signedMsg);
   };
 
   /**
    * Generate an AGAINST vote for the proposalId
-   * @param {Number} proposalId of compund governance proposal
+   * @param {Number} proposalId of dYdX Governance proposal
    */
   const voteAgainst = async (proposalId) => {
     // Generate and sign message
-    const msgParams = createVoteBySigMessage(proposalId, 0);
+    const msgParams = createVoteBySigMessage(proposalId, false);
     const signedMsg = await signVote(msgParams);
 
     // POST vote to server
-    await castVote(proposalId, 0, signedMsg);
-  };
-
-  /**
-   * Generate an ABSTAIN vote for the proposalId
-   * @param {Number} proposalId of compund governance proposal
-   */
-  const voteAbstain = async (proposalId) => {
-    // Generate and sign message
-    const msgParams = createVoteBySigMessage(proposalId, 2);
-    const signedMsg = await signVote(msgParams);
-
-    // POST vote to server
-    await castVote(proposalId, 2, signedMsg);
+    await castVote(proposalId, true, signedMsg);
   };
 
   /**
    * POSTS vote to back-end
-   * @param {Number} proposalId of compound governance proposal
+   * @param {Number} proposalId of dYdX Governance proposal
    * @param {boolean} support indicating for || against status for proposal
    * @param {string} signedMsg from Web3
    */
@@ -147,7 +131,6 @@ function useVote() {
   return {
     voteFor,
     voteAgainst,
-    voteAbstain
   };
 }
 
