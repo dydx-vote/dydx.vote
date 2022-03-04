@@ -1,10 +1,10 @@
 import {
-  COMP_ABI,
+  DYDX_ABI,
   SIG_RELAYER_ABI,
-  GOVERNOR_BRAVO_ABI,
+  GOVERNOR_ABI,
   SIG_RELAYER_ADDRESS,
-  COMP_ADDRESS,
-  GOVERNANCE_ADDRESS_BRAVO,
+  DYDX_ADDRESS,
+  GOVERNOR_ADDRESS,
 } from "helpers/abi"; // Contract ABIs + Addresses
 import {
   insertDelegateTx,
@@ -29,18 +29,18 @@ const Web3Handler = () => {
     SIG_RELAYER_ABI,
     SIG_RELAYER_ADDRESS
   );
-  const compToken = new web3.eth.Contract(COMP_ABI, COMP_ADDRESS);
-  const governorBravo = new web3.eth.Contract(
-    GOVERNOR_BRAVO_ABI,
-    GOVERNANCE_ADDRESS_BRAVO
+  const dydxToken = new web3.eth.Contract(DYDX_ABI, DYDX_ADDRESS);
+  const governor = new web3.eth.Contract(
+    GOVERNOR_ABI,
+    GOVERNOR_ADDRESS
   );
 
   // Return web3 + contracts
   return {
     web3,
     sigRelayer,
-    compToken,
-    governorBravo,
+    dydxToken,
+    governor,
   };
 };
 

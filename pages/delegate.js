@@ -310,7 +310,7 @@ export default function Delegate({
 export async function getServerSideProps() {
   // Collect first page data
   const firstPage =
-    "https://uni.vote/api/governance/accounts?page_size=10&page_number=1";
+    "https://dydx-vote.vercel.app/api/governance/accounts?page_size=10&page_number=1";
   const response = await axios.get(firstPage);
 
   // Collect delegated vote count

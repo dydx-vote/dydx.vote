@@ -1,11 +1,10 @@
 import Web3 from "web3"; // Web3
 import axios from "axios"; // Axios requests
 import {
-  GOVERNOR_ALPHA_ABI,
-  GOVERNOR_BRAVO_ABI,
-  GOVERNANCE_ADDRESS_BRAVO,
-  GOVERNANCE_ADDRESS_ALPHA1,
-  GOVERNANCE_ADDRESS_ALPHA2,
+  DYDX_ABI,
+  DYDX_ADDRESS,
+  GOVERNOR_ABI,
+  GOVERNOR_ADDRESS,
   MULTICALL_ABI,
   MULTICALL_ADDRESS,
 } from "helpers/abi"; // Contract ABIs + Addresses
@@ -13,22 +12,14 @@ import {
 /// Global defining key values for proposal states
 const statesKey = [
   "Pending", // creation block
-  "Active", // start block
   "Canceled", // cancelation block
-  "Defeated", // end block
+  "Active", // start block
+  "Failed", // end block
   "Succeeded", // end block
   "Queued", // executionETA - 2 days
   "Expired",
   "Executed", // execution block
 ];
-
-/// Global defining titles for misformatted proposals
-const MISFORMATTED_PROPOSAL_TITLES = {
-  3: "Uniswap Grants Program v0.1",
-  8: "Upgrade Governance Contract to Compound's Governor Bravo",
-  9: "Add 1 Basis Point Fee Tier",
-  10: "Should Uniswap v3 be deployed to Polygon?",
-};
 
 /**
  * Instantiates server-side web3 connection
@@ -39,29 +30,18 @@ const Web3Handler = () => {
 
   // Setup contracts
   const multicall = new web3.eth.Contract(MULTICALL_ABI, MULTICALL_ADDRESS);
-
-  const governanceBravo = new web3.eth.Contract(
-    GOVERNOR_BRAVO_ABI,
-    GOVERNANCE_ADDRESS_BRAVO
-  );
-
-  const governanceAlpha1 = new web3.eth.Contract(
-    GOVERNOR_ALPHA_ABI,
-    GOVERNANCE_ADDRESS_ALPHA1
-  );
-
-  const governanceAlpha2 = new web3.eth.Contract(
-    GOVERNOR_ALPHA_ABI,
-    GOVERNANCE_ADDRESS_ALPHA2
+  const dydxToken = new web3.eth.Contract(DYDX_ABI, DYDX_ADDRESS);
+  const governor = new web3.eth.Contract(
+    GOVERNOR_ABI,
+    GOVERNOR_ADDRESS
   );
 
   // Return web3 + contracts
   return {
     web3,
-    governanceAlpha1,
-    governanceAlpha2,
-    governanceBravo,
-    multicall,
+    dydxToken,
+    governor,
+    multicall
   };
 };
 
@@ -71,22 +51,15 @@ export default async (req, res) => {
   page_number = Number(page_number);
   const {
     web3,
-    governanceAlpha1,
-    governanceAlpha2,
-    governanceBravo,
-    multicall,
+    dydxToken,
+    governor,
+    multicall
   } = Web3Handler();
   const proposalCount = Number(
-    await governanceBravo.methods.proposalCount().call()
+    await governor.methods.getProposalsCount().call()
   );
 
-  const proposalCountDeprecated1 = 5;
-  const proposalCountDeprecated2 = 3;
-  const initialProposalBravo = 8;
-  const numBravoProposals = proposalCount - initialProposalBravo;
-
   const offset = (page_number - 1) * page_size;
-  console.log("Offset is " + offset);
 
   let graphRes, states;
   let resData = {};
@@ -107,7 +80,7 @@ export default async (req, res) => {
 
   [graphRes, states] = await Promise.all([
     axios.post(
-      "https://api.thegraph.com/subgraphs/name/arr00/uniswap-governance-v2",
+      "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
       {
         query:
           `{
@@ -117,10 +90,11 @@ export default async (req, res) => {
           offset +
           ` orderBy:startBlock orderDirection:desc) {
             id
-            description
+            ipfsHash
             creationTime
             startBlock
             endBlock
+            queuedTime
             executionTime
             cancellationTime
             executionETA
@@ -131,50 +105,19 @@ export default async (req, res) => {
     multicall.methods
       .aggregate(
         genCalls(
-          GOVERNANCE_ADDRESS_BRAVO,
-          "0x3e4f49e6",
-          proposalCount - offset,
+          GOVERNOR_ADDRESS,
+          "0x9080936f", //TODO: Find getProposalsState hex
+          proposalCount - 1 - offset,
           Math.max(
-            initialProposalBravo,
+            -1,
             proposalCount - offset - page_size
           ),
           web3
-        ).concat(
-          genCalls(
-            GOVERNANCE_ADDRESS_ALPHA2,
-            "0x3e4f49e6",
-            Math.min(
-              proposalCountDeprecated2,
-              proposalCountDeprecated2 - (offset - numBravoProposals)
-            ),
-            Math.max(
-              0,
-              proposalCountDeprecated2 -
-                (page_size - (numBravoProposals - offset))
-            ),
-            web3
-          ).concat(
-            genCalls(
-              GOVERNANCE_ADDRESS_ALPHA1,
-              "0x3e4f49e6",
-              Math.min(
-                proposalCountDeprecated1,
-                proposalCountDeprecated1 -
-                  (offset - numBravoProposals - proposalCountDeprecated2)
-              ),
-              Math.max(
-                0,
-                proposalCountDeprecated1 -
-                  (page_size -
-                    (numBravoProposals + proposalCountDeprecated2 - offset))
-              ),
-              web3
-            )
-          )
         )
       )
       .call(),
   ]);
+
   let stringStates = [];
   for (const state of states["returnData"]) {
     stringStates.push(statesKey[Number(state[state.length - 1])]);
@@ -182,23 +125,9 @@ export default async (req, res) => {
   let proposalData = [];
   for (const proposal of graphRes.data.data.proposals) {
     let newProposal = {};
-    newProposal.title =
-      MISFORMATTED_PROPOSAL_TITLES[proposal.id] ??
-      proposal.description.split("\n")[0].substring(2);
+    newProposal.title = "Temp"
     newProposal.id = proposal.id;
-    newProposal.uniswap_url = "https://app.uniswap.org/#/vote/";
-    switch (true) {
-      case newProposal.id <= proposalCountDeprecated1:
-        newProposal.uniswap_url += "0/" + newProposal.id;
-        break;
-      case newProposal.id <=
-        proposalCountDeprecated2 + proposalCountDeprecated1:
-        newProposal.uniswap_url +=
-          "1/" + (newProposal.id - proposalCountDeprecated1);
-        break;
-      default:
-        newProposal.uniswap_url += "2/" + newProposal.id;
-    }
+    newProposal.dydx_url = "https://dydx.community/dashboard/proposal/" + proposal.id;
 
     const currentState = stringStates.shift();
     let time = null;
@@ -249,7 +178,7 @@ async function getTimeFromState(state, proposal, web3) {
     case "Canceled":
       time = parseInt(proposal.cancellationTime);
       break;
-    case "Defeated":
+    case "Failed":
       blockToFetch = proposal.endBlock;
       break;
     case "Succeeded":

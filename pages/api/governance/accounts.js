@@ -18,26 +18,24 @@ export default async (req, res) => {
 
   // Fetch top delegates from thegraph
   const graphRes = await axios.post(
-    "https://api.thegraph.com/subgraphs/name/arr00/uniswap-governance-v2",
+    "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
     {
       query:
         `{
-					delegates(first:` +
+					users(first:` +
         page_size +
-        `, orderBy:numberVotes, orderDirection:desc, skip:` +
+        `, orderBy:votingPower, orderDirection:desc, skip:` +
         offset +
         `) {
 						id
-						delegatedVotes
-            numberVotes
-            votes {
-              id
-            }
+						numberVotes
+            votingPower
+            proposingPower
 					}
 				}`,
     }
   );
-  const accounts = graphRes.data.data.delegates;
+  const accounts = graphRes.data.data.users;
 
   const tallyRes = await axios.post(
     "https://identity.withtally.com/user/profiles/by/address",
@@ -53,8 +51,7 @@ export default async (req, res) => {
     let a = accounts[x];
     a.address = a.id;
     a.proposals_voted = a.numberVotes;
-    a.votes = a.delegatedVotes;
-    delete a.delegatedVotes;
+    delete a.numberVotes;
     delete a.id;
 
     let b = {};
