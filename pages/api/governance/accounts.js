@@ -24,7 +24,7 @@ export default async (req, res) => {
         `{
 					users(first:` +
         page_size +
-        `, orderBy:votingPower, orderDirection:desc, skip:` +
+        `, orderBy:votingPower, where:{numberVotes_gte:1}, orderDirection:desc, skip:` +
         offset +
         `) {
 						id
@@ -51,8 +51,12 @@ export default async (req, res) => {
     let a = accounts[x];
     a.address = a.id;
     a.proposals_voted = a.numberVotes;
+    a.proposing_power = a.proposingPower;
+    a.voting_power = a.votingPower;
     delete a.numberVotes;
     delete a.id;
+    delete a.votingPower;
+    delete a.proposingPower;
 
     let b = {};
     if (tallyAccountsData[accounts[x].address.toLowerCase()]) {

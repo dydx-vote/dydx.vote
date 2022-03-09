@@ -5,14 +5,13 @@ import APICTA from "components/api_cta"; // API CTA
 import styles from "styles/page.module.scss"; // Page styles
 import { web3p, delegate } from "containers"; // Context
 import BeatLoader from "react-spinners/BeatLoader"; // Loading state
+import approx from "approximate-number"; // Approximate large number 
 
 export default function Delegate({
   defaultAccounts,
   defaultPages,
-  defaultDelegated,
 }) {
   const [loading, setLoading] = useState(false); // Accounts loading state
-  const [delegated] = useState(defaultDelegated); // Max delegated votes
   const [pages, setPages] = useState(defaultPages); // Accounts pagination
   const [customAddress, setCustomAddress] = useState(""); // Custom voting address
   const [buttonLoading, setButtonLoading] = useState(null); // Delegation button loading state
@@ -71,7 +70,7 @@ export default function Delegate({
     // Else, toggle loading to false on success
     setButtonLoading(null);
   };
-
+  console.log(accounts);
   return (
     <Layout>
       {/* Page head */}
@@ -92,17 +91,10 @@ export default function Delegate({
             // If delegated, display information
             <div>
               <h2>
-                <a
-                  // Link to Uniswap Governance profile
-                  href={`https://compound.finance/governance/address/${currentDelegate}?target_network=mainnet`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {currentDelegate.substr(0, 5) +
-                    // Address of delegate
-                    "..." +
-                    currentDelegate.slice(currentDelegate.length - 5)}
-                </a>
+                {currentDelegate.substr(0, 5) +
+                  // Address of delegate
+                  "..." +
+                  currentDelegate.slice(currentDelegate.length - 5)}
               </h2>
               <h3>Delegating To</h3>
             </div>
@@ -186,11 +178,9 @@ export default function Delegate({
                         {
                           // Calculate vote weight (total / delegate) * 100
                           (
-                            (parseFloat(delegate.votes) / delegated) *
-                            100
-                          ).toFixed(2)
+                            approx(parseFloat(delegate.voting_power)/1e18)
+                          )
                         }
-                        %
                       </span>
                     </div>
 
@@ -313,18 +303,6 @@ export async function getServerSideProps() {
     "https://dydx-vote.vercel.app/api/governance/accounts?page_size=10&page_number=1";
   const response = await axios.get(firstPage);
 
-  // Collect delegated vote count
-  const historyURL =
-    "https://api.thegraph.com/subgraphs/name/arr00/uniswap-governance-v2";
-  const historyResponse = await axios.post(historyURL, {
-    query: `{
-  governance(id:"GOVERNANCE"){
-    delegatedVotes
-  }
-}`,
-  });
-
-  // Return:
   return {
     props: {
       // First 10 addresses
@@ -335,10 +313,6 @@ export async function getServerSideProps() {
         // Maximum number of paginated proposal pages
         max: response.data.pagination_summary.total_pages,
       },
-      // Total delegated vote count
-      defaultDelegated: parseFloat(
-        historyResponse.data.data.governance.delegatedVotes
-      ),
     },
   };
 }
