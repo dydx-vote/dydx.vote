@@ -100,7 +100,7 @@ export default async (req, res) => {
       .aggregate(
         genCalls(
           GOVERNOR_ADDRESS,
-          "0x9080936f", //TODO: Find getProposalsState hex
+          "0x9080936f",
           proposalCount - 1 - offset,
           Math.max(-1, proposalCount - offset - page_size),
           web3
@@ -109,30 +109,25 @@ export default async (req, res) => {
       .call(),
   ]);
 
-  let stringStates = [];
-  for (const state of states["returnData"]) {
-    stringStates.push(statesKey[Number(state[state.length - 1])]);
-  }
-  let proposalData = [];
-  for (const proposal of graphRes.data.data.proposals) {
+  let stringStates = states["returnData"].map((state) => {
+    return statesKey[Number(state[state.length - 1])];
+  })
+  const proposalFetchers = graphRes.data.data.proposals.map(async (proposal, i) => {
     let newProposal = {};
     newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
-    const ipfsData = await pullIpfsHash(newProposal.ipfs_hash); // Should parallelize these fetches
-    newProposal.title = ipfsData.title;
+    newProposal.title = await getProposalTitleFromIpfs(newProposal.ipfs_hash);
     newProposal.id = proposal.id;
     newProposal.dydx_url =
       "https://dydx.community/dashboard/proposal/" + proposal.id;
-
-    const currentState = stringStates.shift();
+    const currentState = stringStates[i];
     let time = null;
     if (get_state_times == "true" || get_state_times == true) {
       time = await getTimeFromState(currentState, proposal, web3);
     }
-    let stateObj = { value: currentState, start_time: time };
-
-    newProposal.state = stateObj;
-    proposalData.push(newProposal);
-  }
+    newProposal.state = { value: currentState, start_time: time };
+    return newProposal;
+  });
+  const proposalData = await Promise.all(proposalFetchers);
   resData.proposals = proposalData;
   res.json(resData);
 };
@@ -201,8 +196,14 @@ async function getTimeFromState(state, proposal, web3) {
 }
 
 async function pullIpfsHash(ipfsHash) {
-  const res = await axios.get("https://gateway.pinata.cloud/ipfs/" + ipfsHash);
+  // Pinata: https://gateway.pinata.cloud/ipfs/
+  const res = await axios.get("https://ipfs.io/ipfs/" + ipfsHash);
   return res.data;
+}
+
+async function getProposalTitleFromIpfs(ipfsHash) {
+  const ipfsData = await pullIpfsHash(ipfsHash);
+  return ipfsData.title;
 }
 
 function encodeIpfsHash(encodedIpfsHash) {
