@@ -1,7 +1,7 @@
-import { connectToDatabase } from "helpers/database/mongo"; // Mongo connection
-
-// Database collection name
-const collectionName = "awaitingTxs";
+import {
+  connectToDBAwaiting,
+  connectToDBProposals,
+} from "helpers/database/mongo"; // Mongo connection
 
 /**
  * Inserts delegate tx to the database
@@ -9,7 +9,7 @@ const collectionName = "awaitingTxs";
  */
 const insertDelegateTx = async (tx) => {
   // Collect database connection
-  const { db } = await connectToDatabase();
+  const db = await connectToDBAwaiting();
 
   // Insert delegate transaction
   const { insertedId } = await db.insertOne(tx);
@@ -25,7 +25,7 @@ const insertDelegateTx = async (tx) => {
  */
 const delegationAllowed = async (address) => {
   // Collect database connection
-  const { db } = await connectToDatabase();
+  const db = await connectToDBAwaiting();
 
   // Check for existing transactions from user
   const existingUserTxs = await db
@@ -67,7 +67,7 @@ const delegationAllowed = async (address) => {
  */
 const insertVoteTx = async (tx) => {
   // Collect database connection
-  const { db } = await connectToDatabase();
+  const db = await connectToDBAwaiting();
 
   // Insert vote
   const { insertedId } = await db.insertOne(tx);
@@ -84,7 +84,7 @@ const insertVoteTx = async (tx) => {
  */
 const voteAllowed = async (address, proposalId) => {
   // Collect database connection
-  const { db } = await connectToDatabase();
+  const db = await connectToDBAwaiting();
 
   // Collect existing user transactions
   const existingUserTxs = await db
@@ -100,16 +100,29 @@ const voteAllowed = async (address, proposalId) => {
 };
 
 const pendingTransactions = async () => {
-// Collect database connection
-const { db } = await connectToDatabase();
+  // Collect database connection
+  const db = await connectToDBAwaiting();
 
-const pendingTxs = await db.find({executed:false}).toArray();
-pendingTxs.forEach((tx) => {
-  delete tx._id;
-  delete tx.executed;
-  delete tx.createdAt;
-});
-return pendingTxs;
+  const pendingTxs = await db.find({ executed: false }).toArray();
+  pendingTxs.forEach((tx) => {
+    delete tx._id;
+    delete tx.executed;
+    delete tx.createdAt;
+  });
+  return pendingTxs;
+};
+
+const fetchProposals = async () => {
+  const db = await connectToDBProposals();
+  const proposals = await db.find().sort({"_id":-1});
+  return proposals;
+}
+
+const addProposal = async (proposal) => {
+  const collection = await connectToDBProposals();
+  const { insertedId } = await collection.insertOne(proposal);
+
+  return insertedId;
 }
 
 // Export functions
@@ -119,4 +132,6 @@ export {
   delegationAllowed,
   voteAllowed,
   pendingTransactions,
+  fetchProposals,
+  addProposal
 };

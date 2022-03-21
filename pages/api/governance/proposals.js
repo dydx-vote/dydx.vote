@@ -1,6 +1,7 @@
 import Web3 from "web3"; // Web3
 import axios from "axios"; // Axios requests
 import bs58 from "bs58"; // bs58 cryptography for decode ipfs hash
+import { fetchProposals, addProposal } from "helpers"; // canVote helper
 
 import {
   DYDX_ABI,
@@ -49,9 +50,14 @@ export default async (req, res) => {
   page_size = Number(page_size);
   page_number = Number(page_number);
   const { web3, dydxToken, governor, multicall } = Web3Handler();
-  const proposalCount = Number(
-    await governor.methods.getProposalsCount().call()
-  );
+  let [proposalCount, cachedProposalsCursor] = await Promise.all([
+    governor.methods.getProposalsCount().call(),
+    fetchProposals(),
+  ]);
+
+  proposalCount = Number(proposalCount);
+  const cachedProposalCount = await cachedProposalsCursor.count();
+  // If equal, don't need to fetch proposals
 
   const offset = (page_number - 1) * page_size;
 
@@ -72,6 +78,19 @@ export default async (req, res) => {
   pagination_summary.total_entries = proposalCount;
   resData.pagination_summary = pagination_summary;
 
+  let toStore = proposalData[0];
+  toStore["_id"] = toStore.id;
+  //await addProposal(toStore);
+  resData.proposals = proposalData;
+  res.json(resData);
+};
+
+/**
+ * Pulls proposals in a descending order
+ * @param {Number} last
+ * @param {Number} first
+ */
+function pullProposals(last, first) {
   [graphRes, states] = await Promise.all([
     axios.post(
       "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
@@ -111,26 +130,26 @@ export default async (req, res) => {
 
   let stringStates = states["returnData"].map((state) => {
     return statesKey[Number(state[state.length - 1])];
-  })
-  const proposalFetchers = graphRes.data.data.proposals.map(async (proposal, i) => {
-    let newProposal = {};
-    newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
-    newProposal.title = await getProposalTitleFromIpfs(newProposal.ipfs_hash);
-    newProposal.id = proposal.id;
-    newProposal.dydx_url =
-      "https://dydx.community/dashboard/proposal/" + proposal.id;
-    const currentState = stringStates[i];
-    let time = null;
-    if (get_state_times == "true" || get_state_times == true) {
-      time = await getTimeFromState(currentState, proposal, web3);
-    }
-    newProposal.state = { value: currentState, start_time: time };
-    return newProposal;
   });
+  const proposalFetchers = graphRes.data.data.proposals.map(
+    async (proposal, i) => {
+      let newProposal = {};
+      newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
+      newProposal.title = await getProposalTitleFromIpfs(newProposal.ipfs_hash);
+      newProposal.id = proposal.id;
+      newProposal.dydx_url =
+        "https://dydx.community/dashboard/proposal/" + proposal.id;
+      const currentState = stringStates[i];
+      let time = null;
+      if (get_state_times == "true" || get_state_times == true) {
+        time = await getTimeFromState(currentState, proposal, web3);
+      }
+      newProposal.state = { value: currentState, start_time: time };
+      return newProposal;
+    }
+  );
   const proposalData = await Promise.all(proposalFetchers);
-  resData.proposals = proposalData;
-  res.json(resData);
-};
+}
 
 /**
  * Generate hex calls for a call signature and a range of uint256 parameter input
@@ -174,7 +193,7 @@ async function getTimeFromState(state, proposal, web3) {
       blockToFetch = proposal.endBlock;
       break;
     case "Queued":
-      time = parseInt(proposal.executionETA) - 60 * 60 * 24 * 2; // two days
+      time = proposal.queuedTime;
       break;
     case "Expired":
       time = parseInt(proposal.executionETA) + 1209600; // Grace period of 2 weeks
