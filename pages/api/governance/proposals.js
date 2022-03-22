@@ -1,6 +1,11 @@
 import Web3 from "web3"; // Web3
 import axios from "axios"; // Axios requests
 import bs58 from "bs58"; // bs58 cryptography for decode ipfs hash
+import {
+  fetchProposals,
+  addProposals,
+  fetchCachedProposalsCount,
+} from "helpers"; // canVote helper
 
 import {
   DYDX_ABI,
@@ -45,21 +50,33 @@ const Web3Handler = () => {
 };
 
 export default async (req, res) => {
-  let { page_number = 1, page_size = 10, get_state_times = false } = req.query;
+  let { page_number = 1, page_size = 10 } = req.query;
   page_size = Number(page_size);
   page_number = Number(page_number);
-  const { web3, dydxToken, governor, multicall } = Web3Handler();
-  const proposalCount = Number(
-    await governor.methods.getProposalsCount().call()
-  );
-
   const offset = (page_number - 1) * page_size;
+  const { governor } = Web3Handler();
+  let [proposalCount, cachedProposalCount] = await Promise.all([
+    governor.methods.getProposalsCount().call(),
+    fetchCachedProposalsCount(),
+  ]);
 
-  let graphRes, states;
+  proposalCount = Number(proposalCount);
+
+  if (cachedProposalCount < proposalCount) {
+    let newProposals = await pullProposals(
+      proposalCount - 1 /* proposal count starts at 0 */,
+      cachedProposalCount /* exclusive */
+    );
+    newProposals = newProposals.map((prop) => {
+      prop.id = Number(prop.id);
+      return prop;
+    });
+    await addProposals(newProposals); // Save new proposals to Mongodb
+  }
+
   let resData = {};
 
   let pagination_summary = {};
-
   pagination_summary.page_number = Number(page_number);
   pagination_summary.total_pages = Math.ceil(proposalCount / page_size);
 
@@ -72,6 +89,30 @@ export default async (req, res) => {
   pagination_summary.total_entries = proposalCount;
   resData.pagination_summary = pagination_summary;
 
+  let proposalData = [];
+
+  const proposalsPointer = await fetchProposals(
+    (proposalCount - 1) - offset,
+    page_size
+  );
+  const allVals = (await proposalsPointer.toArray()).map((prop) => {
+    delete prop._id;
+    return prop;
+  });
+  proposalData = proposalData.concat(allVals);
+
+  resData.proposals = proposalData;
+  res.json(resData);
+};
+
+/**
+ * Pulls proposals in a descending order inclusive
+ * @param {Number} last
+ * @param {Number} first
+ */
+async function pullProposals(last, first) {
+  const { web3, multicall } = Web3Handler();
+  let graphRes, states;
   [graphRes, states] = await Promise.all([
     axios.post(
       "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
@@ -79,10 +120,10 @@ export default async (req, res) => {
         query:
           `{
           proposals(first:` +
-          page_size +
-          ` skip:` +
-          offset +
-          ` orderBy:startBlock orderDirection:desc) {
+          (last - first + 1) +
+          ` where:{id_lte:` +
+          last +
+          `} orderBy:id orderDirection:desc) {
             id
             ipfsHash
             creationTime
@@ -97,53 +138,43 @@ export default async (req, res) => {
       }
     ),
     multicall.methods
-      .aggregate(
-        genCalls(
-          GOVERNOR_ADDRESS,
-          "0x9080936f",
-          proposalCount - 1 - offset,
-          Math.max(-1, proposalCount - offset - page_size),
-          web3
-        )
-      )
+      .aggregate(genCalls(GOVERNOR_ADDRESS, "0x9080936f", last, first, web3))
       .call(),
   ]);
 
   let stringStates = states["returnData"].map((state) => {
     return statesKey[Number(state[state.length - 1])];
-  })
-  const proposalFetchers = graphRes.data.data.proposals.map(async (proposal, i) => {
-    let newProposal = {};
-    newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
-    newProposal.title = await getProposalTitleFromIpfs(newProposal.ipfs_hash);
-    newProposal.id = proposal.id;
-    newProposal.dydx_url =
-      "https://dydx.community/dashboard/proposal/" + proposal.id;
-    const currentState = stringStates[i];
-    let time = null;
-    if (get_state_times == "true" || get_state_times == true) {
-      time = await getTimeFromState(currentState, proposal, web3);
-    }
-    newProposal.state = { value: currentState, start_time: time };
-    return newProposal;
   });
+  const proposalFetchers = graphRes.data.data.proposals.map(
+    async (proposal, i) => {
+      let newProposal = {};
+      newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
+      newProposal.title = await getProposalTitleFromIpfs(newProposal.ipfs_hash);
+      newProposal.id = proposal.id;
+      newProposal.dydx_url =
+        "https://dydx.community/dashboard/proposal/" + proposal.id;
+      const currentState = stringStates[i];
+      const time = await getTimeFromState(currentState, proposal, web3);
+      newProposal.state = { value: currentState, start_time: time };
+      return newProposal;
+    }
+  );
   const proposalData = await Promise.all(proposalFetchers);
-  resData.proposals = proposalData;
-  res.json(resData);
-};
+  return proposalData;
+}
 
 /**
  * Generate hex calls for a call signature and a range of uint256 parameter input
  * @param {String} target Contract to call
  * @param {String} callPrefix Function hex sig
  * @param {Number} last Last input
- * @param {Number} first First input (not inclusive)
+ * @param {Number} first First input inclusive
  * @param {Web3} web3 Web3 instance, used for encoding parameters
  * @returns [] Call input for multicall
  */
 function genCalls(target, callPrefix, last, first, web3) {
   let res = [];
-  for (let i = last; i > first; i--) {
+  for (let i = last; i >= first; i--) {
     res.push({
       target: target,
       callData:
@@ -174,7 +205,7 @@ async function getTimeFromState(state, proposal, web3) {
       blockToFetch = proposal.endBlock;
       break;
     case "Queued":
-      time = parseInt(proposal.executionETA) - 60 * 60 * 24 * 2; // two days
+      time = proposal.queuedTime;
       break;
     case "Expired":
       time = parseInt(proposal.executionETA) + 1209600; // Grace period of 2 weeks

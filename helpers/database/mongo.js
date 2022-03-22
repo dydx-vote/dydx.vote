@@ -8,7 +8,7 @@ if (!cached) cached = global.mongo = {};
 /**
  * Return mongoDB connection (cached || fresh)
  */
-export async function connectToDatabase() {
+async function connectToDatabase() {
   // If cached connection exists on global, return
   if (cached.conn) return cached.conn;
 
@@ -27,7 +27,7 @@ export async function connectToDatabase() {
         // Setup global client
         conn.client = client;
         // Return client
-        return client.db().collection(MONGODB_DB);
+        return client.db();
       })
       // Follow-up for DB caching
       .then((db) => {
@@ -40,4 +40,14 @@ export async function connectToDatabase() {
   // Run cached promise and return connection
   await cached.promise;
   return cached.conn;
+}
+
+export async function connectToDBAwaiting() {
+  const { db } = await connectToDatabase();
+  return db.collection(MONGODB_DB);
+}
+
+export async function connectToDBProposals() {
+  const { db } = await connectToDatabase();
+  return db.collection("proposals");
 }
