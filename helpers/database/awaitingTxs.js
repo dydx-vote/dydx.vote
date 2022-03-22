@@ -112,17 +112,20 @@ const pendingTransactions = async () => {
   return pendingTxs;
 };
 
-const fetchProposals = async () => {
+const fetchProposals = async (last, pageSize) => {
   const db = await connectToDBProposals();
-  const proposals = await db.find().sort({"_id":-1});
+  const proposals = db.find({id:{$lte:last}}).sort({"id":-1}).limit(pageSize);
   return proposals;
 }
 
-const addProposal = async (proposal) => {
-  const collection = await connectToDBProposals();
-  const { insertedId } = await collection.insertOne(proposal);
+const fetchCachedProposalsCount = async () => {
+  const db = await connectToDBProposals();
+  return await db.find().count();
+}
 
-  return insertedId;
+const addProposals = async (proposals) => {
+  const collection = await connectToDBProposals();
+  await collection.insertMany(proposals);
 }
 
 // Export functions
@@ -133,5 +136,6 @@ export {
   voteAllowed,
   pendingTransactions,
   fetchProposals,
-  addProposal
+  addProposals,
+  fetchCachedProposalsCount
 };
