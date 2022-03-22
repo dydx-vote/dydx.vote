@@ -138,6 +138,7 @@ export default function Home({ defaultProposals, defaultPages }) {
                     <div>
                       {/* Truncated proposal name */}
                       <h4>
+                        {proposal.basename + " "}
                         {proposal.title.split(" ").splice(0, 10).join(" ")}
                         {proposal.title.split(" ").length > 10 ? "..." : ""}
                       </h4>

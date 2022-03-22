@@ -149,7 +149,7 @@ async function pullProposals(last, first) {
     async (proposal, i) => {
       let newProposal = {};
       newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
-      newProposal.title = await getProposalTitleFromIpfs(newProposal.ipfs_hash);
+      [newProposal.title, newProposal.basename] = await getProposalTitleAndBasenameFromIpfs(newProposal.ipfs_hash);
       newProposal.id = proposal.id;
       newProposal.dydx_url =
         "https://dydx.community/dashboard/proposal/" + proposal.id;
@@ -232,9 +232,9 @@ async function pullIpfsHash(ipfsHash) {
   return res.data;
 }
 
-async function getProposalTitleFromIpfs(ipfsHash) {
+async function getProposalTitleAndBasenameFromIpfs(ipfsHash) {
   const ipfsData = await pullIpfsHash(ipfsHash);
-  return ipfsData.title;
+  return [ipfsData.title, ipfsData.basename];
 }
 
 function encodeIpfsHash(encodedIpfsHash) {
