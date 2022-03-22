@@ -112,6 +112,12 @@ const pendingTransactions = async () => {
   return pendingTxs;
 };
 
+/**
+ * Function to produce Mongodb pointer
+ * @param {*} last Last value (inclusive)
+ * @param {*} pageSize (page size)
+ * @returns 
+ */
 const fetchProposals = async (last, pageSize) => {
   const db = await connectToDBProposals();
   const proposals = db.find({id:{$lte:last}}).sort({"id":-1}).limit(pageSize);

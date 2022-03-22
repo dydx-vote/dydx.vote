@@ -61,10 +61,9 @@ export default async (req, res) => {
   ]);
 
   proposalCount = Number(proposalCount);
-  let newProposals = [];
 
   if (cachedProposalCount < proposalCount) {
-    newProposals = await pullProposals(
+    let newProposals = await pullProposals(
       proposalCount - 1 /* proposal count starts at 0 */,
       cachedProposalCount /* exclusive */
     );
@@ -78,7 +77,6 @@ export default async (req, res) => {
   let resData = {};
 
   let pagination_summary = {};
-
   pagination_summary.page_number = Number(page_number);
   pagination_summary.total_pages = Math.ceil(proposalCount / page_size);
 
@@ -94,7 +92,7 @@ export default async (req, res) => {
   let proposalData = [];
 
   const proposalsPointer = await fetchProposals(
-    proposalCount - offset,
+    (proposalCount - 1) - offset,
     page_size
   );
   const allVals = (await proposalsPointer.toArray()).map((prop) => {
