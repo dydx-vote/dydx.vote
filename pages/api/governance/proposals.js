@@ -92,14 +92,24 @@ export default async (req, res) => {
   let proposalData = [];
 
   const proposalsPointer = await fetchProposals(
-    (proposalCount - 1) - offset,
+    proposalCount - 1 - offset,
     page_size
   );
   const allVals = (await proposalsPointer.toArray()).map((prop) => {
     delete prop._id;
     return prop;
   });
-  proposalData = proposalData.concat(allVals);
+
+  const currentStates = fetchProposalStates(
+    proposalCount - 1 - offset,
+    proposalCount - 1 - offset - page_size
+  );
+
+  proposalData = proposalData.concat(
+    allVals.map((x, i) => {
+      x.state.value = currentStates[i];
+    })
+  );
 
   resData.proposals = proposalData;
   res.json(resData);
@@ -149,7 +159,8 @@ async function pullProposals(last, first) {
     async (proposal, i) => {
       let newProposal = {};
       newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
-      [newProposal.title, newProposal.basename] = await getProposalTitleAndBasenameFromIpfs(newProposal.ipfs_hash);
+      [newProposal.title, newProposal.basename] =
+        await getProposalTitleAndBasenameFromIpfs(newProposal.ipfs_hash);
       newProposal.id = proposal.id;
       newProposal.dydx_url =
         "https://dydx.community/dashboard/proposal/" + proposal.id;
@@ -161,6 +172,22 @@ async function pullProposals(last, first) {
   );
   const proposalData = await Promise.all(proposalFetchers);
   return proposalData;
+}
+
+/**
+ *
+ * @param {Number} last last proposal to fetch state for
+ * @param {Number} first first proposal to fetch state for (exclusive)
+ */
+async function fetchProposalStates(last, first) {
+  const { web3, multicall } = Web3Handler();
+  const states = await multicall.methods
+    .aggregate(genCalls(GOVERNOR_ADDRESS, "0x9080936f", last, first, web3))
+    .call();
+  const stringStates = states["returnData"].map((state) => {
+    return statesKey[Number(state[state.length - 1])] + 'hello world';
+  });
+  return stringStates;
 }
 
 /**
