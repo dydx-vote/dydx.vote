@@ -37,7 +37,7 @@
 // Global setup
 body {
   margin: 0px;
-  background-color: #191b1f;
+  background-color: #13131E;
   font-family: "DM Sans", sans-serif;
 }
 
@@ -79,4 +79,14 @@ body {
   //   ) !important;
   background-color: #6866f6;
   border: none;
+}
+
+#waveform {
+  object-fit: cover;
+  position: fixed;
+  top: 10%;
+  left: 0;
+  z-index: -1;
+  height: 100%;
+  width: 100%;
 }

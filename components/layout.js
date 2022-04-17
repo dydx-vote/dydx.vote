@@ -5,6 +5,11 @@ import styles from "styles/layout.module.scss"; // Component styles
 export default function Layout({ children }) {
   return (
     <div>
+      {/* Video Background */}
+      <video id="waveform" preload="auto" loop muted autoPlay playsInline disablePictureInPicture>
+        <source src="/brand/wave.webm" type="video/webm" />
+      </video>
+
       {/* Meta Setup */}
       <Head>
         {/* Meta */}
