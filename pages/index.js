@@ -132,78 +132,76 @@ export default function Home({ defaultProposals, defaultPages }) {
             <div>
               {proposals.map((proposal, i) => {
                 // For each proposal in proposals array return:
-                return (
-                  <div className={styles.proposal} key={i}>
-                    {/* Proposal info */}
-                    <div>
-                      {/* Truncated proposal name */}
-                      <h4>
-                        {proposal.basename + " "}
-                        {proposal.title.split(" ").splice(0, 10).join(" ")}
-                        {proposal.title.split(" ").length > 10 ? "..." : ""}
-                      </h4>
-
-                      {/* Proposal ID + Status + Status update date */}
-                      <span id="numeric">
-                        {proposal.id} • {firstUppercase(proposal.state.value)}{" "}
-                        {dayjs
-                          .unix(proposal.state.start_time)
-                          .format("MMMM D, YYYY")}
-                      </span>
-                    </div>
-
-                    {/* Proposal actions */}
-                    <div>
-                      <button
-                        onClick={() => proposalInfo(proposal.dydx_url)}
-                        className={styles.info}
-                      >
-                        Info
-                      </button>
-                      {proposal.state.value === "Executed" ? (
-                        // Check if proposal is active
-                        web3 ? (
-                          // If authenticated and proposal active, return voting + info buttons
-                          <>
-                            <button
-                              onClick={() => voteWithLoading(proposal.id, true)}
-                              className={styles.for}
-                            >
-                              {buttonLoading.id === proposal.id &&
-                              buttonLoading.support === true ? (
-                                <BeatLoader size={9} />
-                              ) : (
-                                "Vote For"
-                              )}
-                            </button>
-                            <button
-                              onClick={() =>
-                                voteWithLoading(proposal.id, false)
-                              }
-                              className={styles.against}
-                            >
-                              {buttonLoading.id === proposal.id &&
-                              buttonLoading.support === false ? (
-                                <BeatLoader size={9} />
-                              ) : (
-                                "Vote Against"
-                              )}
-                            </button>
-                          </>
-                        ) : (
-                          // Else, return button to authenticate for active proposals
-                          <button
-                            className={styles.info}
-                            onClick={authenticate}
-                          >
-                            Authenticate to vote
-                          </button>
-                        )
-                      ) : // Else, return only Info button
-                      null}
-                    </div>
-                  </div>
-                );
+                // return (
+                //   <div className={styles.proposal} key={i}>
+                //     {/* Proposal info */}
+                //     <div>
+                //       {/* Truncated proposal name */}
+                //       <h4>
+                //         {proposal.basename + " "}
+                //         {proposal.title.split(" ").splice(0, 10).join(" ")}
+                //         {proposal.title.split(" ").length > 10 ? "..." : ""}
+                //       </h4>
+                //       {/* Proposal ID + Status + Status update date */}
+                //       <span id="numeric">
+                //         {proposal.id} • {firstUppercase(proposal.state.value)}{" "}
+                //         {dayjs
+                //           .unix(proposal.state.start_time)
+                //           .format("MMMM D, YYYY")}
+                //       </span>
+                //     </div>
+                //     {/* Proposal actions */}
+                //     <div>
+                //       <button
+                //         onClick={() => proposalInfo(proposal.dydx_url)}
+                //         className={styles.info}
+                //       >
+                //         Info
+                //       </button>
+                //       {proposal.state.value === "Executed" ? (
+                //         // Check if proposal is active
+                //         web3 ? (
+                //           // If authenticated and proposal active, return voting + info buttons
+                //           <>
+                //             <button
+                //               onClick={() => voteWithLoading(proposal.id, true)}
+                //               className={styles.for}
+                //             >
+                //               {buttonLoading.id === proposal.id &&
+                //               buttonLoading.support === true ? (
+                //                 <BeatLoader size={9} />
+                //               ) : (
+                //                 "Vote For"
+                //               )}
+                //             </button>
+                //             <button
+                //               onClick={() =>
+                //                 voteWithLoading(proposal.id, false)
+                //               }
+                //               className={styles.against}
+                //             >
+                //               {buttonLoading.id === proposal.id &&
+                //               buttonLoading.support === false ? (
+                //                 <BeatLoader size={9} />
+                //               ) : (
+                //                 "Vote Against"
+                //               )}
+                //             </button>
+                //           </>
+                //         ) : (
+                //           // Else, return button to authenticate for active proposals
+                //           <button
+                //             className={styles.info}
+                //             onClick={authenticate}
+                //           >
+                //             Authenticate to vote
+                //           </button>
+                //         )
+                //       ) : // Else, return only Info button
+                //       null}
+                //     </div>
+                //   </div>
+                // );
               })}
             </div>
 

@@ -60,7 +60,7 @@ export default function Layout({ children }) {
         <link
           rel="mask-icon"
           href="/favicon/safari-pinned-tab.svg"
-          color="#ff6fcd"
+          // color="#fff"
         />
         <link rel="shortcut icon" href="/favicon/favicon.ico" />
         <meta name="msapplication-TileColor" content="#ffffff" />

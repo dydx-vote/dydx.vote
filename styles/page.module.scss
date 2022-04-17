@@ -10,7 +10,7 @@
 
     h1 {
       color: white;
-      font-family: "Inter Light";
+      font-family: "DM Sans";
       font-size: 2.5rem;
       margin-block-start: 0px;
     }
@@ -83,7 +83,7 @@
 
     h4 {
       margin: 0px;
-      font-family: "Inter Bold";
+      font-family: "DM Sans Bold";
       font-size: 22px;
       line-height: 28px;
       color: white;
@@ -107,7 +107,7 @@
   }
 
   button:hover {
-    color: #ff6fcd;
+    color: #6866f6;
   }
 
   button:focus {
@@ -182,7 +182,7 @@
 
   span {
     color: #aab8c1;
-    font-family: "Inter Bold";
+    font-family: "DM Sans Bold";
     font-size: 14px;
   }
 
@@ -288,7 +288,7 @@
 
 .proposal:hover,
 .delegate:hover {
-  border-left-color: #ff6fcd;
+  border-left-color: #6866f6;
 }
 
 .info {
@@ -310,17 +310,17 @@
 }
 
 .for {
-  border-color: #ff6fcd;
-  color: #ff6fcd;
+  border-color: #6866f6;
+  color: #6866f6;
 
   > div > div {
-    background-color: #ff6fcd;
+    background-color: #6866f6;
   }
 }
 
 .for:hover {
-  background-color: #ff6fcd !important;
-  border: 1px solid #ff6fcd !important;
+  background-color: #6866f6 !important;
+  border: 1px solid #6866f6 !important;
 
   > div > div {
     background-color: #fff;
@@ -455,7 +455,7 @@
     }
 
     a {
-      color: #ff6fcd;
+      color: #6866f6;
       text-transform: uppercase;
       font-size: 12px;
       font-weight: 700;
@@ -477,7 +477,7 @@
 
     a:hover {
       span {
-        border-bottom-color: #ff6fcd;
+        border-bottom-color: #6866f6;
       }
 
       img {

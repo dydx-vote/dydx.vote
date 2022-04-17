@@ -46,8 +46,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/">
           <div className={styles.logo}>
-            <Image src="/brand/uniswap-logo.svg" height={60} width={60} />
-            <h4>dydx.vote</h4>
+            <Image src="/brand/logo.svg" height={38} width={200} />
           </div>
         </Link>
 
