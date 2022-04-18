@@ -29,20 +29,14 @@
         display: flex;
         align-items: center;
         padding: 0rem 1.6rem;
-        height: 50px;
+        height: 48px;
         font-size: 15px;
         font-weight: bold;
         transition: 0.2s ease-in, color 0.2s ease-in;
-        background-color: #fd79a8;
-        background-image: linear-gradient(
-          117deg,
-          rgba(245, 26, 133, 0.9) 0%,
-          rgba(255, 94, 157, 0.9) 73%,
-          rgba(236, 96, 188, 0.9) 99%
-        );
+        background-color: #6866f6;
         color: #fff;
         border: 1px solid rgba(20, 21, 24, 0.45);
-        border-radius: 3px;
+        border-radius: 12px;
         margin-top: 5px;
         float: right;
         cursor: pointer;
@@ -68,7 +62,7 @@
 
       button:hover {
         background: transparent;
-        border: 1px solid #e84393;
+        border: 1px solid #6866f6;
         color: #fff;
 
         path {
@@ -104,7 +98,7 @@
           }
 
           a:hover {
-            color: #ff6fcd;
+            color: #6866f6;
             padding-bottom: 0.5rem;
           }
         }
@@ -188,7 +182,7 @@
 
   h4 {
     margin-right: 10px;
-    font-family: "Inter Bold";
+    font-family: "DM Sans Bold";
     font-size: 22px;
     line-height: 28px;
     color: white;
@@ -201,8 +195,7 @@
 
 // Active navigation link override
 .active {
-  /*color: #ff6fcd !important; */
-  border-bottom: 2px solid #ff6fcd;
+  border-bottom: 2px solid #6866f6;
 }
 
 // Content
@@ -212,7 +205,7 @@
 
 // Footer
 .footer {
-  background-color: #070a0e;
+  background-color: rgb(7, 10, 14, 0.75);
   height: 185px;
 
   > div {
@@ -239,8 +232,8 @@
       }
 
       a:hover {
-        border-bottom: 1px solid #ff6fcd;
-        color: #ff6fcd;
+        border-bottom: 1px solid #6866f6;
+        color: #6866f6;
       }
     }
   }

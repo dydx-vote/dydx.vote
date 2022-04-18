@@ -5,6 +5,11 @@ import styles from "styles/layout.module.scss"; // Component styles
 export default function Layout({ children }) {
   return (
     <div>
+      {/* Video Background */}
+      <video id="waveform" preload="auto" loop muted autoPlay playsInline disablePictureInPicture>
+        <source src="/brand/wave.webm" type="video/webm" />
+      </video>
+
       {/* Meta Setup */}
       <Head>
         {/* Meta */}
@@ -60,7 +65,7 @@ export default function Layout({ children }) {
         <link
           rel="mask-icon"
           href="/favicon/safari-pinned-tab.svg"
-          color="#ff6fcd"
+          // color="#fff"
         />
         <link rel="shortcut icon" href="/favicon/favicon.ico" />
         <meta name="msapplication-TileColor" content="#ffffff" />
