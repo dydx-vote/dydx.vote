@@ -70,7 +70,6 @@ export default function Delegate({
     // Else, toggle loading to false on success
     setButtonLoading(null);
   };
-  console.log(accounts);
   return (
     <Layout>
       {/* Page head */}
