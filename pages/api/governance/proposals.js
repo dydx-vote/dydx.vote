@@ -2,7 +2,7 @@ import Web3 from "web3"; // Web3
 import axios from "axios"; // Axios requests
 import bs58 from "bs58"; // bs58 cryptography for decode ipfs hash
 import {
-  fetchProposals,
+  fetchProposals as fetchProposalsFromDb,
   addProposals,
   fetchCachedProposalsCount,
 } from "helpers"; // canVote helper
@@ -63,14 +63,10 @@ export default async (req, res) => {
   proposalCount = Number(proposalCount);
 
   if (cachedProposalCount < proposalCount) {
-    let newProposals = await pullProposals(
+    let newProposals = await fetchProposals(
       proposalCount - 1 /* proposal count starts at 0 */,
-      cachedProposalCount /* exclusive */
+      cachedProposalCount /* inclusive */
     );
-    newProposals = newProposals.map((prop) => {
-      prop.id = Number(prop.id);
-      return prop;
-    });
     await addProposals(newProposals); // Save new proposals to Mongodb
   }
 
@@ -89,19 +85,24 @@ export default async (req, res) => {
   pagination_summary.total_entries = proposalCount;
   resData.pagination_summary = pagination_summary;
 
-  let proposalData = [];
-
-  const proposalsPointer = await fetchProposals(
-    (proposalCount - 1) - offset,
+  const proposalsPointer = await fetchProposalsFromDb(
+    proposalCount - 1 - offset,
     page_size
   );
-  const allVals = (await proposalsPointer.toArray()).map((prop) => {
+  const allProposals = (await proposalsPointer.toArray()).map((prop) => {
     delete prop._id;
     return prop;
   });
-  proposalData = proposalData.concat(allVals);
+  const currentStates = await fetchProposalStates(
+    proposalCount - 1 - offset,
+    Math.max(proposalCount - 1 - offset - page_size, 0),
+    allProposals
+  );
+  resData.proposals = allProposals.map((x, i) => {
+    x.state = currentStates[i];
+    return x;
+  });
 
-  resData.proposals = proposalData;
   res.json(resData);
 };
 
@@ -110,20 +111,19 @@ export default async (req, res) => {
  * @param {Number} last
  * @param {Number} first
  */
-async function pullProposals(last, first) {
+async function fetchProposals(last, first) {
   const { web3, multicall } = Web3Handler();
-  let graphRes, states;
-  [graphRes, states] = await Promise.all([
-    axios.post(
-      "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
-      {
-        query:
-          `{
+  console.log("fetching proposals " + last + " first " + first);
+  const graphRes = await axios.post(
+    "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
+    {
+      query:
+        `{
           proposals(first:` +
-          (last - first + 1) +
-          ` where:{id_lte:` +
-          last +
-          `} orderBy:id orderDirection:desc) {
+        (last - first + 1) +
+        ` where:{id_lte:` +
+        last +
+        `} orderBy:id orderDirection:desc) {
             id
             ipfsHash
             creationTime
@@ -135,32 +135,48 @@ async function pullProposals(last, first) {
             executionETA
           }
         }`,
-      }
-    ),
-    multicall.methods
-      .aggregate(genCalls(GOVERNOR_ADDRESS, "0x9080936f", last, first, web3))
-      .call(),
-  ]);
+    }
+  );
 
-  let stringStates = states["returnData"].map((state) => {
-    return statesKey[Number(state[state.length - 1])];
-  });
   const proposalFetchers = graphRes.data.data.proposals.map(
     async (proposal, i) => {
       let newProposal = {};
       newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
-      [newProposal.title, newProposal.basename] = await getProposalTitleAndBasenameFromIpfs(newProposal.ipfs_hash);
+      [newProposal.title, newProposal.basename] =
+        await getProposalTitleAndBasenameFromIpfs(newProposal.ipfs_hash);
       newProposal.id = proposal.id;
       newProposal.dydx_url =
         "https://dydx.community/dashboard/proposal/" + proposal.id;
-      const currentState = stringStates[i];
-      const time = await getTimeFromState(currentState, proposal, web3);
-      newProposal.state = { value: currentState, start_time: time };
       return newProposal;
     }
   );
   const proposalData = await Promise.all(proposalFetchers);
-  return proposalData;
+
+  return proposalData.map((prop) => {
+    prop.id = Number(prop.id);
+    return prop;
+  });
+}
+
+/**
+ *
+ * @param {Number} last last proposal to fetch state for
+ * @param {Number} first first proposal to fetch state for (inclusive)
+ */
+async function fetchProposalStates(last, first, proposals) {
+  const { web3, multicall } = Web3Handler();
+  const states = await multicall.methods
+    .aggregate(genCalls(GOVERNOR_ADDRESS, "0x9080936f", last, first, web3))
+    .call();
+  const stringStates = states["returnData"].map((state) => {
+    return statesKey[Number(state[state.length - 1])];
+  });
+
+  const stateObjs = stringStates.map((state) => {
+    return { value: state };
+  });
+
+  return stateObjs;
 }
 
 /**
