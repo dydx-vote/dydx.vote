@@ -146,9 +146,9 @@ export default function Home({ defaultProposals, defaultPages }) {
                       {/* Proposal ID + Status + Status update date */}
                       <span id="numeric">
                         {proposal.id} • {firstUppercase(proposal.state.value)}{" "}
-                        {dayjs
+                        {/* {dayjs
                           .unix(proposal.state.start_time)
-                          .format("MMMM D, YYYY")}
+                          .format("MMMM D, YYYY")} */}
                       </span>
                     </div>
 
