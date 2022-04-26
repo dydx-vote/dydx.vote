@@ -292,8 +292,9 @@
 }
 
 .info {
-  border-color: #657786;
-  color: #657786;
+  background-color: #272727 !important;
+  border-color: #272727 !important;
+  color: #fff;
 
   > div > div {
     background-color: #657786;
@@ -301,8 +302,7 @@
 }
 
 .info:hover {
-  background-color: #657786 !important;
-  border: 1px solid #657786 !important;
+  opacity: 0.5;
 
   > div > div {
     background-color: #fff;
@@ -310,8 +310,9 @@
 }
 
 .for {
-  border-color: #6866f6;
-  color: #6866f6;
+  background-color: #1bb072 !important;
+  border-color: #1bb072 !important;
+  color: #fff;
 
   > div > div {
     background-color: #6866f6;
@@ -319,8 +320,7 @@
 }
 
 .for:hover {
-  background-color: #6866f6 !important;
-  border: 1px solid #6866f6 !important;
+  opacity: 0.5;
 
   > div > div {
     background-color: #fff;
@@ -328,8 +328,9 @@
 }
 
 .against {
-  border-color: #e74c3c;
-  color: #e74c3c;
+  background-color: #e74c3c !important;
+  border-color: #e74c3c !important;
+  color: #fff;
 
   > div > div {
     background-color: #e74c3c;
@@ -337,8 +338,7 @@
 }
 
 .against:hover {
-  background-color: #e74c3c !important;
-  border: 1px solid #e74c3c !important;
+  opacity: 0.5;
 
   > div > div {
     background-color: #fff;
