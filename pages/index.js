@@ -83,15 +83,15 @@ export default function Home({ defaultProposals, defaultPages }) {
     try {
       // Call voteFor or voteAgainst based on support
       if (support === true) {
-        await voteFor(proposalId);
         gtag("event", "vote_for", {
           proposalId,
         });
+        await voteFor(proposalId);
       } else {
-        await voteAgainst(proposalId);
         gtag("event", "vote_against", {
           proposalId,
         });
+        await voteAgainst(proposalId);
       }
     } catch {
       // If MetaMask cancellation, toggle button loading to false
