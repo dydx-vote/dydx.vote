@@ -162,7 +162,6 @@ export default function Home({ defaultProposals, defaultPages }) {
                           .format("MMMM D, YYYY")} */}
                         </span>
                       </div>
-
                       {/* Proposal actions */}
                       <div>
                         <button
@@ -171,7 +170,7 @@ export default function Home({ defaultProposals, defaultPages }) {
                         >
                           Info
                         </button>
-                        {proposal.state.value === "Executed" ? (
+                        {proposal.state.value === "Active" ? (
                           // Check if proposal is active
                           web3 ? (
                             // If authenticated and proposal active, return voting + info buttons
