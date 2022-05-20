@@ -59,11 +59,11 @@ export default function Delegate({ defaultAccounts, defaultPages }) {
 
     try {
       // Call createDelegation
-      await createDelegation(address);
       gtag("event", "delegate", {
         address,
         rank,
       });
+      await createDelegation(address);
     } catch {
       // If MetaMask cancellation, force toggle loading to false
       setButtonLoading(null);
