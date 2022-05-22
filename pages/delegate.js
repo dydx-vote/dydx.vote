@@ -96,10 +96,16 @@ export default function Delegate({ defaultAccounts, defaultPages }) {
               // If delegated, display information
               <div>
                 <h2>
-                  {currentDelegate.substr(0, 5) +
-                    // Address of delegate
-                    "..." +
-                    currentDelegate.slice(currentDelegate.length - 5)}
+                  <a
+                    href={`https://etherscan.io/address/${currentDelegate}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {currentDelegate.substr(0, 5) +
+                      // Address of delegate
+                      "..." +
+                      currentDelegate.slice(currentDelegate.length - 5)}
+                  </a>
                 </h2>
                 <h3>Delegating To</h3>
               </div>
