@@ -85,7 +85,7 @@ export default function Delegate({ defaultAccounts, defaultPages }) {
             <h1>Delegate By Signature</h1>
             <div>
               <p>
-                Delegating by signature lets you delegate your UNI to community
+                Delegating by signature lets you delegate your dYdX to community
                 members without having to send your transactions on-chain,
                 saving fees.
               </p>
