@@ -165,7 +165,9 @@
 
 // Mobile menu states
 .mobileMenuOpen {
-  display: initial !important;
+  align-items: center;
+  display: flex !important;
+  flex-direction: column;
 }
 
 .mobileMenuHidden {

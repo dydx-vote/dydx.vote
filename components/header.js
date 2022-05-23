@@ -116,7 +116,7 @@ export default function Header() {
 
         {/* Mobile menu */}
         <div
-          className={`${styles.mobileMenu} ${
+          className={`${
             menuOpen ? styles.mobileMenuOpen : styles.mobileMenuHidden
           }`}
         >
