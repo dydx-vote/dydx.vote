@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb"; // MongoClient setup
-const { MONGODB_URL, MONGODB_DB } = process.env; // MongoDB URL and table name
+const { MONGODB_URL } = process.env; // MongoDB URL and table name
 
 // Cached connection handler
 let cached = global.mongo;
@@ -44,7 +44,7 @@ async function connectToDatabase() {
 
 export async function connectToDBAwaiting() {
   const { db } = await connectToDatabase();
-  return db.collection(MONGODB_DB);
+  return db.collection("awaitingTxs");
 }
 
 export async function connectToDBProposals() {
