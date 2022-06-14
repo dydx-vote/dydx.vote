@@ -14,7 +14,7 @@ import {
   pendingTransactions,
   fetchProposals,
   addProposals,
-  fetchCachedProposalsCount
+  fetchCachedProposalsCount,
 } from "helpers/database/awaitingTxs"; // Database helper functions
 import Web3 from "web3"; // Web3
 import axios from "axios"; // Axios requests
@@ -246,7 +246,7 @@ const canVote = async (address, proposalId) => {
       // Collect proposal data
       governor.methods.getProposalById(proposalId).call(),
       // Collect proposal receipt
-      governorBravo.methods.getVoteOnProposal(proposalId, address).call(),
+      governor.methods.getVoteOnProposal(proposalId, address).call(),
       // Collect current block number
       web3.eth.getBlockNumber(),
       // Check if vote is allowed from db
@@ -483,4 +483,13 @@ const getPendingTransactions = async () => {
 };
 
 // Export functions
-export { canDelegate, canVote, vote, delegate, getPendingTransactions, fetchProposals, addProposals, fetchCachedProposalsCount };
+export {
+  canDelegate,
+  canVote,
+  vote,
+  delegate,
+  getPendingTransactions,
+  fetchProposals,
+  addProposals,
+  fetchCachedProposalsCount,
+};
