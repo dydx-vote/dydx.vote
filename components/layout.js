@@ -24,7 +24,7 @@ export default function Layout({ children }) {
         <meta name="title" content="dYdX.Vote" />
         <meta
           name="description"
-          content="Gas-less voting and delegation for Uniswap governance. Sign and relay your transactions for free."
+          content="Gas-less voting and delegation for dYdX governance. Sign and relay your transactions for free."
         />
 
         {/* Open Graph + Facebook */}
@@ -33,7 +33,7 @@ export default function Layout({ children }) {
         <meta property="og:title" content="dYdX.Vote" />
         <meta
           property="og:description"
-          content="Gas-less voting and delegation for Uniswap governance. Sign and relay your transactions for free."
+          content="Gas-less voting and delegation for dYdX governance. Sign and relay your transactions for free."
         />
         <meta property="og:image" content="https://dYdX.Vote/brand/meta.png" />
 
@@ -43,7 +43,7 @@ export default function Layout({ children }) {
         <meta property="twitter:title" content="dYdX.Vote" />
         <meta
           property="twitter:description"
-          content="Gas-less voting and delegation for Uniswap governance. Sign and relay your transactions for free."
+          content="Gas-less voting and delegation for dYdX governance. Sign and relay your transactions for free."
         />
         <meta
           property="twitter:image"
