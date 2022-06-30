@@ -38,7 +38,7 @@ function useDelegate() {
       primaryType: "Delegate",
       domain: {
         name: "dYdX",
-        version: 1,
+        version: "1",
         chainId: 1,
         verifyingContract: "0x92D6C1e31e14520e676a687F0a93788B716BEff5",
       },
