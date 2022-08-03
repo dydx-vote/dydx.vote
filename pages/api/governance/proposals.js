@@ -54,13 +54,10 @@ export default async (req, res) => {
   page_size = Number(page_size);
   page_number = Number(page_number);
   const offset = (page_number - 1) * page_size;
-  const { governor } = Web3Handler();
   let [proposalCount, cachedProposalCount] = await Promise.all([
-    governor.methods.getProposalsCount().call(),
+    getProposalCountTheGraph(),
     fetchCachedProposalsCount(),
   ]);
-
-  proposalCount = Number(proposalCount);
 
   if (cachedProposalCount < proposalCount) {
     let newProposals = await fetchProposals(
@@ -112,7 +109,6 @@ export default async (req, res) => {
  * @param {Number} first
  */
 async function fetchProposals(last, first) {
-  const { web3, multicall } = Web3Handler();
   console.log("fetching proposals " + last + " first " + first);
   const graphRes = await axios.post(
     "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
@@ -141,7 +137,7 @@ async function fetchProposals(last, first) {
   const proposalFetchers = graphRes.data.data.proposals.map(
     async (proposal, i) => {
       let newProposal = {};
-      newProposal.ipfs_hash = encodeIpfsHash(proposal.ipfsHash);
+      newProposal.ipfs_hash = decodeIpfsHash(proposal.ipfsHash);
       [newProposal.title, newProposal.basename] =
         await getProposalTitleAndBasenameFromIpfs(newProposal.ipfs_hash);
       newProposal.id = proposal.id;
@@ -156,6 +152,24 @@ async function fetchProposals(last, first) {
     prop.id = Number(prop.id);
     return prop;
   });
+}
+
+/**
+ * Pull proposal count from the graph
+ * @returns {Number} current proposal count from the graph
+ */
+async function getProposalCountTheGraph() {
+  const proposalCount = await axios.post(
+    "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
+    {
+      query: `{
+          governances(first: 1) {
+            proposals
+          }
+        }`,
+    }
+  );
+  return Number(proposalCount.data.data.governances[0].proposals);
 }
 
 /**
@@ -200,48 +214,6 @@ function genCalls(target, callPrefix, last, first, web3) {
   return res;
 }
 
-async function getTimeFromState(state, proposal, web3) {
-  let blockToFetch;
-  let time = null;
-
-  switch (state) {
-    case "Pending":
-      time = parseInt(proposal.creationTime);
-      break;
-    case "Active":
-      blockToFetch = proposal.startBlock;
-      break;
-    case "Canceled":
-      time = parseInt(proposal.cancellationTime);
-      break;
-    case "Failed":
-      blockToFetch = proposal.endBlock;
-      break;
-    case "Succeeded":
-      blockToFetch = proposal.endBlock;
-      break;
-    case "Queued":
-      time = proposal.queuedTime;
-      break;
-    case "Expired":
-      time = parseInt(proposal.executionETA) + 1209600; // Grace period of 2 weeks
-      break;
-    case "Executed":
-      time = parseInt(proposal.executionTime);
-      break;
-    default:
-      console.log("fatal error");
-      console.log("state is " + state);
-  }
-
-  if (time == null) {
-    const block = await web3.eth.getBlock(blockToFetch);
-    return block.timestamp;
-  }
-
-  return time;
-}
-
 async function pullIpfsHash(ipfsHash) {
   // Pinata: https://gateway.pinata.cloud/ipfs/
   const res = await axios.get("https://ipfs.io/ipfs/" + ipfsHash);
@@ -253,7 +225,7 @@ async function getProposalTitleAndBasenameFromIpfs(ipfsHash) {
   return [ipfsData.title, ipfsData.basename];
 }
 
-function encodeIpfsHash(encodedIpfsHash) {
+function decodeIpfsHash(encodedIpfsHash) {
   const fromHexString = (hexString) =>
     new Uint8Array(
       hexString.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
