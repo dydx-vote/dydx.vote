@@ -253,33 +253,33 @@ const canVote = async (address, proposalId) => {
       voteAllowed(address, proposalId),
     ]);
 
+    // Not ongoing proposal. Leaves a 2400 block buffer for relaying
+    if (
+      !(
+        currentBlock > proposal.startBlock &&
+        currentBlock < proposal.endBlock - 2400
+      ) ||
+      proposal.canceled
+    ) {
+      const error = new Error("proposal voting period is not active");
+      error.code = 400;
+      throw error;
+    }
+
     // Check prior delegated votes
     votesDelegated = await dydxToken.methods
       .getPowerAtBlock(address, proposal.startBlock, 0)
       .call();
-  } catch (erorr) {
+  } catch (error) {
     // Error thrown from DB vote allowed. Throw to res
-    if (typeof erorr.code == "number") {
-      throw erorr;
+    if (typeof error.code == "number") {
+      throw error;
     }
 
     // Else, throw blockchain error
     const newError = new Error("error fetching data from blockchain");
     newError.code = 500;
     throw newError;
-  }
-
-  // Not ongoing proposal. Leaves a 2400 block buffer for relaying
-  if (
-    !(
-      currentBlock > proposal.startBlock &&
-      currentBlock < proposal.endBlock - 2400
-    ) ||
-    proposal.canceled
-  ) {
-    const error = new Error("proposal voting period is not active");
-    error.code = 400;
-    throw error;
   }
 
   // Require at least min comp COMP delegated
@@ -325,7 +325,7 @@ const vote = async (address, proposalId, support, v, r, s) => {
     throw error;
   }
 
-  if(v == "0x00" || v == "0x01") {
+  if (v == "0x00" || v == "0x01") {
     const error = new Error("invalid signature v input");
     error.code = 422;
     throw error;
