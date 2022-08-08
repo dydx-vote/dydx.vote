@@ -412,6 +412,8 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
     throw error;
   }
 
+  const { dydxToken } = Web3Handler();
+
   // Force address formatting
   address = address.toString().toLowerCase();
   delegatee = delegatee.toString().toLowerCase();
@@ -435,9 +437,6 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
   // Force address formatting
   sigAddress = sigAddress.toString().toLowerCase();
 
-  // Force address formatting
-  sigAddress = sigAddress.toString().toLowerCase();
-
   // Address verified to create sig and alleged must match
   if (sigAddress.localeCompare(address) != 0) {
     const error = new Error("given address does not match signer address");
@@ -445,8 +444,12 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
     throw error;
   }
 
+  let onChainNonce;
   try {
-    await canDelegate(address, delegatee);
+    [onChainNonce] = await Promise.all([
+      dydxToken.methods.nonces(address).call(),
+      canDelegate(address, delegatee),
+    ]);
   } catch (error) {
     // Return error from db
     if (typeof error.code == "number") {
@@ -457,6 +460,12 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
     const newError = new Error("error fetching data from blockchain");
     newError.code = 500;
     throw newError;
+  }
+
+  if (onChainNonce != nonce) {
+    const error = new Error("invalid nonce");
+    error.code = 423;
+    throw error;
   }
 
   // Create transaction
@@ -477,7 +486,7 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
   await insertDelegateTx(newTx);
 
   // Send notification to admin using telegram
-  if (typeof process.env.NOTIFICATION_HOOK != "undefined") {
+  if (process.env.NOTIFICATION_HOOK) {
     await axios.get(
       process.env.NOTIFICATION_HOOK + "New dydx.vote delegation sig"
     );
