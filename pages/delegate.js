@@ -159,8 +159,12 @@ export default function Delegate({ defaultAccounts, defaultPages }) {
                       {/* Delegate name */}
                       <div>
                         <a
-                          // Link name to Etherscan address
-                          href={`https://etherscan.io/address/${delegate.address}`}
+                          // Link name to Twitter or Etherscan if no twitter
+                          href={
+                            !!delegate.twitter && delegate.twitter != ""
+                              ? `https://twitter.com/${delegate.twitter}`
+                              : `https://etherscan.io/address/${delegate.address}`
+                          }
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -310,7 +314,7 @@ export default function Delegate({ defaultAccounts, defaultPages }) {
 export async function getServerSideProps() {
   // Collect first page data
   const firstPage =
-    "https://dydx-vote.vercel.app/api/governance/accounts?page_size=10&page_number=1";
+    "http://dydx.vote/api/governance/accounts?page_size=10&page_number=1";
   const response = await axios.get(firstPage);
 
   return {
