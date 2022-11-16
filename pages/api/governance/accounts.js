@@ -37,12 +37,45 @@ export default async (req, res) => {
   );
   const accounts = graphRes.data.data.users;
 
+  let accountDataRequests = [];
+  for (const account of accounts) {
+    accountDataRequests.push(
+      axios.post("https://api.tally.xyz/query", {
+        query: `query AddressHeader($address: Address!) {
+              address(address: $address) {
+                accounts {
+                  name
+                  picture
+                  identities {
+                    twitter
+                  }
+                }
+              }
+            }`,
+        variables: {
+          address: account.id,
+        },
+      })
+    );
+  }
+
+  const accountDataRequestResults = await Promise.all(accountDataRequests);
+  const accountData = accountDataRequestResults.map(
+    (x) => x.data.data.address.accounts[0]
+  );
+  console.log(accountData);
+
   for (const x in accounts) {
     let a = accounts[x];
     a.address = a.id;
     a.proposals_voted = a.numberVotes;
     a.proposing_power = a.proposingPower;
     a.voting_power = a.votingPower;
+    a.display_name =
+      accountData[x].name.substring(0, 2) != "0x" ? accountData[x].name : null;
+    a.twitter = accountData[x].identities.twitter;
+    a.image_url = accountData[x].picture;
+
     delete a.numberVotes;
     delete a.id;
     delete a.votingPower;
