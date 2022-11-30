@@ -186,7 +186,7 @@ const canDelegate = async (address, delegatee = "0x") => {
   }
 
   // Enforces a min dYdX balance
-  if (parseInt(dydxBalance) < parseInt(process.env.MIN_COMP)) {
+  if (parseInt(dydxBalance) < parseInt(process.env.MIN_DYDX)) {
     const error = new Error("dYdX balance too low");
     error.code = 403;
     throw error;
@@ -284,7 +284,7 @@ const canVote = async (address, proposalId) => {
 
   // Require at least min comp COMP delegated
   if (
-    parseInt(votesDelegated) < parseInt(process.env.MIN_COMP) &&
+    parseInt(votesDelegated) < parseInt(process.env.MIN_DYDX) &&
     !isWhitelisted(address)
   ) {
     const error = new Error("dYdX voting power is too low");
