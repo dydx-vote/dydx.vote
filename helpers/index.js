@@ -282,10 +282,9 @@ const canVote = async (address, proposalId) => {
     throw newError;
   }
 
-  // Require at least min comp COMP delegated
+  // Require at least min DYDX delegated
   if (
-    parseInt(votesDelegated) < parseInt(process.env.MIN_DYDX) &&
-    !isWhitelisted(address)
+    parseInt(votesDelegated) < parseInt(process.env.MIN_DYDX)
   ) {
     const error = new Error("dYdX voting power is too low");
     error.code = 403;
@@ -299,14 +298,6 @@ const canVote = async (address, proposalId) => {
     throw error;
   }
 };
-
-function isWhitelisted(address) {
-  const whitelist = [
-    "0x5b3bffc0bcf8d4caec873fdcf719f60725767c98",
-    "0x2b384212edc04ae8bb41738d05ba20e33277bf33",
-  ];
-  return whitelist.includes(address);
-}
 
 /**
  * Validates the given vote by sig data and saves it to the database

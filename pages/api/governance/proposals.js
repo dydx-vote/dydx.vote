@@ -143,6 +143,9 @@ async function fetchProposals(last, first) {
       newProposal.id = proposal.id;
       newProposal.dydx_url =
         "https://dydx.community/dashboard/proposal/" + proposal.id;
+      newProposal.startBlock = proposal.startBlock;
+      newProposal.strategy = proposal.strategy;
+      
       return newProposal;
     }
   );
