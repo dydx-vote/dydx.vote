@@ -129,6 +129,7 @@ async function fetchProposals(last, first) {
             executionTime
             cancellationTime
             executionETA
+            strategy
           }
         }`,
     }
@@ -145,7 +146,7 @@ async function fetchProposals(last, first) {
         "https://dydx.community/dashboard/proposal/" + proposal.id;
       newProposal.startBlock = proposal.startBlock;
       newProposal.strategy = proposal.strategy;
-      
+
       return newProposal;
     }
   );
