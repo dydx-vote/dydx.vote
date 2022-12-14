@@ -19,6 +19,7 @@ import {
 import Web3 from "web3"; // Web3
 import axios from "axios"; // Axios requests
 import { recoverTypedSignature } from "@metamask/eth-sig-util";
+const { Relayer } = require("defender-relay-client");
 
 /**
  * Instantiates server-side web3 connection
@@ -283,9 +284,7 @@ const canVote = async (address, proposalId) => {
   }
 
   // Require at least min DYDX delegated
-  if (
-    parseInt(votesDelegated) < parseInt(process.env.MIN_DYDX)
-  ) {
+  if (parseInt(votesDelegated) < parseInt(process.env.MIN_DYDX)) {
     const error = new Error("dYdX voting power is too low");
     error.code = 403;
     throw error;
@@ -383,6 +382,8 @@ const vote = async (address, proposalId, support, v, r, s) => {
   if (typeof process.env.NOTIFICATION_HOOK != "undefined") {
     await axios.get(process.env.NOTIFICATION_HOOK + "New dydx.vote voting sig");
   }
+
+  await relayVote(newTx);
 };
 
 /**
@@ -482,11 +483,101 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
       process.env.NOTIFICATION_HOOK + "New dydx.vote delegation sig"
     );
   }
+
+  await relayDelegate(newTx);
 };
 
 const getPendingTransactions = async () => {
   return await pendingTransactions();
 };
+
+const credentials = {
+  apiKey: process.env.DEFENDER_KEY,
+  apiSecret: process.env.DEFENDER_SECRET,
+};
+
+// Relay TXs
+async function relayVote(voteTx) {
+  const { governor } = Web3Handler();
+
+  let tx = await governor.methods
+    .submitVoteBySignature(
+      voteTx.proposalId,
+      voteTx.support,
+      voteTx.v,
+      voteTx.r,
+      voteTx.s
+    )
+    .encodeABI();
+  const gasLimit = await governor.methods
+    .submitVoteBySignature(
+      voteTx.proposalId,
+      voteTx.support,
+      voteTx.v,
+      voteTx.r,
+      voteTx.s
+    )
+    .estimateGas();
+
+  tx = {
+    to: governor._address,
+    value: 0,
+    data: tx,
+    maxFeePerGas: "100000000000",
+    maxPriorityFeePerGas: "2000000000",
+    gasLimit,
+  };
+
+  const relayer = new Relayer(credentials);
+
+  try {
+    await relayer.sendTransaction(tx);
+  } catch (err) {
+    console.log(err);
+    console.log(err.message);
+  }
+}
+
+async function relayDelegate(delegateTx) {
+  const { dydxToken } = Web3Handler();
+  let tx = await dydxToken.methods
+    .delegateBySig(
+      delegateTx.delegatee,
+      delegateTx.nonce,
+      delegateTx.expiry,
+      delegateTx.v,
+      delegateTx.r,
+      delegateTx.s
+    )
+    .encodeABI();
+  const gasLimit = await dydxToken.methods
+    .delegateBySig(
+      delegateTx.delegatee,
+      delegateTx.nonce,
+      delegateTx.expiry,
+      delegateTx.v,
+      delegateTx.r,
+      delegateTx.s
+    )
+    .estimateGas();
+
+  tx = {
+    to: dydxToken._address,
+    value: 0,
+    data: tx,
+    maxFeePerGas: "100000000000",
+    maxPriorityFeePerGas: "2000000000",
+    gasLimit,
+  };
+
+  const relayer = new Relayer(credentials);
+  try {
+    await relayer.sendTransaction(tx);
+  } catch (err) {
+    console.log(err);
+    console.log(err.message);
+  }
+}
 
 // Export functions
 export {
