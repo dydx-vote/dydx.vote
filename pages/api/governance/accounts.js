@@ -55,6 +55,9 @@ export default async (req, res) => {
         variables: {
           address: account.id,
         },
+        headers: {
+          "Api-Key": process.env.TALLY_API_KEY,
+        }
       })
     );
   }
