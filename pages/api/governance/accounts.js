@@ -40,8 +40,10 @@ export default async (req, res) => {
   let accountDataRequests = [];
   for (const account of accounts) {
     accountDataRequests.push(
-      axios.post("https://api.tally.xyz/query", {
-        query: `query AddressHeader($address: Address!) {
+      axios.post(
+        "https://api.tally.xyz/query",
+        {
+          query: `query AddressHeader($address: Address!) {
               address(address: $address) {
                 accounts {
                   name
@@ -52,13 +54,16 @@ export default async (req, res) => {
                 }
               }
             }`,
-        variables: {
-          address: account.id,
+          variables: {
+            address: account.id,
+          },
         },
-        headers: {
-          "Api-Key": process.env.TALLY_API_KEY,
+        {
+          headers: {
+            "Api-Key": process.env.TALLY_API_KEY,
+          },
         }
-      })
+      )
     );
   }
 
@@ -66,7 +71,6 @@ export default async (req, res) => {
   const accountData = accountDataRequestResults.map(
     (x) => x.data.data.address.accounts[0]
   );
-  console.log(accountData);
 
   for (const x in accounts) {
     let a = accounts[x];
