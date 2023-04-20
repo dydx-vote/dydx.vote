@@ -372,7 +372,7 @@ const vote = async (address, proposalId, support, v, r, s) => {
     proposalId,
     type: "vote",
     createdAt: new Date(),
-    executed: false,
+    executed: true,
   };
 
   // Insert vote transaction to db
@@ -471,7 +471,7 @@ const delegate = async (address, delegatee, nonce, expiry, v, r, s) => {
     expiry,
     type: "delegate",
     createdAt: new Date(),
-    executed: false,
+    executed: true,
   };
 
   // Insert transaction into db
