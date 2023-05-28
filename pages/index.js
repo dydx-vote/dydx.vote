@@ -38,7 +38,7 @@ export default function Home({ defaultProposals, defaultPages }) {
     setLoading(true);
 
     // Collect next page request string and request
-    const nextPage = `https://dydx-vote.vercel.app/api/governance/accounts?page_size=10&get_state_times=true&page_number=${
+    const nextPage = `https://dydx.vote/api/governance/proposals?page_size=10&get_state_times=true&page_number=${
       pages.current + 1
     }`;
     const response = await axios.get(nextPage);
@@ -245,7 +245,7 @@ export default function Home({ defaultProposals, defaultPages }) {
 export async function getServerSideProps() {
   // Collect first page data
   const firstPage =
-    "https://dydx-vote.vercel.app/api/governance/proposals?page_size=10&get_state_times=true&page_number=1";
+    "https://dydx.vote/api/governance/proposals?page_size=10&get_state_times=true&page_number=1";
   const response = await axios.get(firstPage);
 
   // Return:
