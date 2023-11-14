@@ -45,6 +45,7 @@ const Web3Handler = () => {
     sigRelayer,
     dydxToken,
     governor,
+    dydxStrategy
   };
 };
 
@@ -279,7 +280,7 @@ const canVote = async (address, proposalId) => {
     if (typeof error.code == "number") {
       throw error;
     }
-
+    
     // Else, throw blockchain error
     const newError = new Error("error fetching data from blockchain");
     newError.code = 500;
