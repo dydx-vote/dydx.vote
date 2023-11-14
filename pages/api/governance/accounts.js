@@ -18,7 +18,7 @@ export default async (req, res) => {
 
   // Fetch top delegates from thegraph
   const graphRes = await axios.post(
-    "https://api.thegraph.com/subgraphs/name/arr00/dydx-governance",
+    "https://api.thegraph.com/subgraphs/name/graph-buildersdao/dydx-governance",
     {
       query:
         `{
