@@ -5,6 +5,8 @@ import {
   SIG_RELAYER_ADDRESS,
   DYDX_ADDRESS,
   GOVERNOR_ADDRESS,
+  DYDX_STRATEGY_ABI,
+  DYDX_STRATEGY_ADDRESS
 } from "helpers/abi"; // Contract ABIs + Addresses
 import {
   insertDelegateTx,
@@ -34,6 +36,7 @@ const Web3Handler = () => {
     SIG_RELAYER_ADDRESS
   );
   const dydxToken = new web3.eth.Contract(DYDX_ABI, DYDX_ADDRESS);
+  const dydxStrategy = new web3.eth.Contract(DYDX_STRATEGY_ABI, DYDX_STRATEGY_ADDRESS);
   const governor = new web3.eth.Contract(GOVERNOR_ABI, GOVERNOR_ADDRESS);
 
   // Return web3 + contracts
@@ -268,8 +271,8 @@ const canVote = async (address, proposalId) => {
     }
 
     // Check prior delegated votes
-    votesDelegated = await dydxToken.methods
-      .getPowerAtBlock(address, proposal.startBlock, 0)
+    votesDelegated = await dydxStrategy.methods
+      .getVotingPowerAt(address, proposal.startBlock)
       .call();
   } catch (error) {
     // Error thrown from DB vote allowed. Throw to res
