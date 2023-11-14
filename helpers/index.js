@@ -218,7 +218,7 @@ const canDelegate = async (address, delegatee = "0x") => {
  */
 const canVote = async (address, proposalId) => {
   // Collect Web3 + contracts
-  const { web3, dydxToken, governor } = Web3Handler();
+  const { web3, dydxStrategy, governor } = Web3Handler();
 
   // Check for undefined inputs
   if (typeof address == "undefined" || typeof proposalId == "undefined") {
